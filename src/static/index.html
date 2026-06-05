@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDI Severity Predictor</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+  }
+  .container {
+    width: 100%;
+    max-width: 560px;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #86868b;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  }
+  .field { margin-bottom: 16px; }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6e6e73;
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+  input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    border: 1.5px solid #d2d2d7;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color .15s;
+    background: #fafafa;
+  }
+  input:focus { border-color: #0071e3; background: #fff; }
+  input::placeholder { color: #aeaeb2; font-family: -apple-system, sans-serif; }
+  button {
+    width: 100%;
+    padding: 11px;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: 10px;
+    background: #0071e3;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+    margin-top: 4px;
+  }
+  button:hover { background: #0077ed; }
+  button:active { background: #006edb; }
+  button:disabled { background: #aeaeb2; cursor: not-allowed; }
+  .error {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #fef0ef;
+    color: #c41e3a;
+    border-radius: 10px;
+    font-size: 13px;
+    display: none;
+  }
+  .results { display: none; margin-top: 24px; }
+  .severity-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .severity-badge.Minor { background: #e8f5e9; color: #2e7d32; }
+  .severity-badge.Moderate { background: #fff3e0; color: #e65100; }
+  .severity-badge.Major { background: #fce4ec; color: #c62828; }
+  .prob-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+  .prob-label {
+    width: 70px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6e6e73;
+    flex-shrink: 0;
+  }
+  .prob-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #e8e8ed;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .prob-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .4s ease;
+  }
+  .prob-bar-fill.Minor { background: #34c759; }
+  .prob-bar-fill.Moderate { background: #ff9500; }
+  .prob-bar-fill.Major { background: #ff3b30; }
+  .prob-value {
+    width: 48px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1d1d1f;
+    flex-shrink: 0;
+  }
+  .smiles-display {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: #f5f5f7;
+    border-radius: 10px;
+    font-size: 12px;
+    font-family: "SF Mono", "Fira Code", monospace;
+    color: #6e6e73;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .loading {
+    text-align: center;
+    padding: 16px;
+    color: #86868b;
+    font-size: 14px;
+    display: none;
+  }
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid #d2d2d7;
+    border-top-color: #0071e3;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>DDI Severity Predictor</h1>
+  <p class="subtitle">Predict drug-drug interaction severity from chemical structure</p>
+  <div class="card">
+    <div class="field">
+      <label for="smiles_a">Drug A (SMILES)</label>
+      <input id="smiles_a" type="text" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="smiles_b">Drug B (SMILES)</label>
+      <input id="smiles_b" type="text" placeholder="e.g. CCO" spellcheck="false">
+    </div>
+    <button id="predict-btn" onclick="predict()">Predict</button>
+    <div class="loading" id="loading"><span class="spinner"></span>Predicting…</div>
+    <div class="error" id="error"></div>
+  </div>
+  <div class="results" id="results">
+    <div class="card">
+      <div id="severity-badge" class="severity-badge"></div>
+      <div id="prob-bars"></div>
+      <div class="smiles-display" id="smiles-display"></div>
+    </div>
+  </div>
+</div>
+<script>
+async function predict() {
+  const smiles_a = document.getElementById('smiles_a').value.trim();
+  const smiles_b = document.getElementById('smiles_b').value.trim();
+  const errorEl = document.getElementById('error');
+  const loadingEl = document.getElementById('loading');
+  const resultsEl = document.getElementById('results');
+  const btn = document.getElementById('predict-btn');
+
+  errorEl.style.display = 'none';
+  resultsEl.style.display = 'none';
+
+  if (!smiles_a || !smiles_b) {
+    errorEl.textContent = 'Both SMILES fields are required.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  loadingEl.style.display = 'block';
+
+  try {
+    const res = await fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ smiles_a, smiles_b }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail?.[0]?.msg || data.detail || 'Prediction failed');
+    }
+
+    displayResults(data);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    loadingEl.style.display = 'none';
+  }
+}
+
+function displayResults(data) {
+  const resultsEl = document.getElementById('results');
+  resultsEl.style.display = 'block';
+
+  const badge = document.getElementById('severity-badge');
+  badge.textContent = data.predicted_severity;
+  badge.className = 'severity-badge ' + data.predicted_severity;
+
+  const barsContainer = document.getElementById('prob-bars');
+  barsContainer.innerHTML = '';
+  for (const [cls, prob] of Object.entries(data.probabilities)) {
+    const row = document.createElement('div');
+    row.className = 'prob-row';
+    row.innerHTML = `
+      <span class="prob-label">${cls}</span>
+      <div class="prob-bar-track"><div class="prob-bar-fill ${cls}" style="width:${(prob * 100).toFixed(0)}%"></div></div>
+      <span class="prob-value">${(prob * 100).toFixed(1)}%</span>
+    `;
+    barsContainer.appendChild(row);
+  }
+
+  document.getElementById('smiles-display').textContent =
+    `Drug A: ${data.smiles_a}  ·  Drug B: ${data.smiles_b}`;
+}
+</script>
+</body>
+</html>

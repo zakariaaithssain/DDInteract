@@ -5,12 +5,19 @@ import joblib
 import pandas as pd
 import numpy as np
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from features import build_features
 
 CLASS_NAMES = ["Minor", "Moderate", "Major"]
 
 app = FastAPI(title="DDI Severity Predictor")
+
+
+@app.get("/")
+def index():
+    return FileResponse("src/static/index.html")
 
 model = None
 scaler = None
