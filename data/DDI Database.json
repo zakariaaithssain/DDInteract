@@ -1,0 +1,1810 @@
+{
+  "drug_interactions": {
+    "major": [
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Ibuprofen",
+        "severity": "Major",
+        "mechanism": "Increased bleeding risk (antiplatelet effect, GI irritation)",
+        "effect": "Increased risk of serious GI bleeding",
+        "Safer_alternative": "Acetaminophen (Paracetamol)",
+        "rationale": "No antiplatelet effect; safer for bleeding risk.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976., Micromedex"
+      },
+      {
+        "drug_a": "Simvastatin",
+        "drug_b": "Clarithromycin",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased statin levels → myopathy",
+        "effect": "Risk of severe muscle toxicity (rhabdomyolysis)",
+        "Safer_alternative": "Azithromycin or Amoxicillin",
+        "rationale": "Weaker CYP3A4 inhibition; different antibiotic class.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976., FDA Label"
+      },
+      {
+        "drug_a": "Sertraline",
+        "drug_b": "Tramadol",
+        "severity": "Major",
+        "mechanism": "Increased serotonin levels",
+        "effect": "Increased risk of serotonin syndrome",
+        "Safer_alternative": "Morphine or Oxycodone (with caution)",
+        "rationale": "Lower serotonergic activity.",
+        "reference": "FDA Adverse Event Reporting"
+      },
+      {
+        "drug_a": "Clopidogrel",
+        "drug_b": "Omeprazole",
+        "severity": "Major",
+        "mechanism": "CYP2C19 inhibition → decreased clopidogrel efficacy",
+        "effect": "Reduced antiplatelet effect, increased thrombosis risk",
+        "Safer_alternative": "Pantoprazole or Famotidine",
+        "rationale": "Less potent CYP2C19 inhibition.",
+        "reference": "Clinical Pharmacokinetics"
+      },
+      {
+        "drug_a": "Digoxin",
+        "drug_b": "Verapamil",
+        "severity": "Major",
+        "mechanism": "P-gp inhibition → increased digoxin levels",
+        "effect": "Increased risk of digoxin toxicity (nausea, arrhythmia)",
+        "Safer_alternative": "Amlodipine",
+        "rationale": "No significant effect on P-gp.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976., Goodman & Gilman"
+      },
+      {
+        "drug_a": "Lithium",
+        "drug_b": "Ibuprofen",
+        "severity": "Major",
+        "mechanism": "Decreased renal lithium clearance → increased lithium levels",
+        "effect": "Increased risk of lithium toxicity",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "Does not affect lithium clearance.",
+        "reference": "Acta Psychiatr Scand"
+      },
+      {
+        "drug_a": "Codeine",
+        "drug_b": "Paroxetine",
+        "severity": "Major",
+        "mechanism": "CYP2D6 inhibition → decreased conversion to morphine",
+        "effect": "Lack of analgesic efficacy",
+        "Safer_alternative": "Morphine",
+        "rationale": "Bypasses metabolic conversion.",
+        "reference": "Clin Pharmacol Ther"
+      },
+      {
+        "drug_a": "Theophylline",
+        "drug_b": "Ciprofloxacin",
+        "severity": "Major",
+        "mechanism": "CYP1A2 inhibition → increased theophylline levels",
+        "effect": "Increased risk of theophylline toxicity",
+        "Safer_alternative": "Levofloxacin or Cefuroxime",
+        "rationale": "Lower interaction potential.",
+        "reference": "Chest Journal"
+      },
+      {
+        "drug_a": "Rifampin",
+        "drug_b": "Warfarin",
+        "severity": "Major",
+        "mechanism": "CYP induction → decreased warfarin levels",
+        "effect": "Reduced anticoagulant efficacy",
+        "Safer_alternative": "Monitor INR closely or choose different antibiotic",
+        "rationale": "Requires aggressive warfarin dose adjustment.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Sildenafil",
+        "drug_b": "Nitroglycerin",
+        "severity": "Major",
+        "mechanism": "Profound hypotension",
+        "effect": "Risk of syncope, cardiovascular events",
+        "Safer_alternative": "Alternative angina treatment",
+        "rationale": "Contraindicated combination.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976., NIH"
+      },
+      {
+        "drug_a": "Valproic Acid",
+        "drug_b": "Lamotrigine",
+        "severity": "Major",
+        "mechanism": "Inhibits lamotrigine metabolism",
+        "effect": "Increased risk of serious rash (Stevens-Johnson syndrome)",
+        "Safer_alternative": "Slow lamotrigine titration",
+        "rationale": "Requires very slow dose escalation.",
+        "reference": "Epilepsia Journal"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Fluconazole",
+        "severity": "Major",
+        "mechanism": "CYP2C9 inhibition → increased warfarin levels",
+        "effect": "Increased bleeding risk",
+        "Safer_alternative": "Terbinafine or topical antifungal",
+        "rationale": "Lower interaction potential.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Cyclosporine",
+        "drug_b": "St. John's Wort",
+        "severity": "Major",
+        "mechanism": "CYP3A4 induction → decreased cyclosporine levels",
+        "effect": "Risk of organ rejection",
+        "Safer_alternative": "Avoid herbal product",
+        "rationale": "Patient education is critical.",
+        "reference": "JAMA"
+      },
+      {
+        "drug_a": "Methotrexate",
+        "drug_b": "Ibuprofen",
+        "severity": "Major",
+        "mechanism": "Decreased methotrexate renal excretion",
+        "effect": "Increased methotrexate levels → toxicity",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "Does not affect methotrexate excretion.",
+        "reference": "Arthritis & Rheumatism"
+      },
+      {
+        "drug_a": "Citalopram",
+        "drug_b": "Tamoxifen",
+        "severity": "Major",
+        "mechanism": "CYP2D6 inhibition → decreased conversion to active endoxifen",
+        "effect": "Reduced efficacy of tamoxifen therapy",
+        "Safer_alternative": "Venlafaxine or Sertraline",
+        "rationale": "Less potent CYP2D6 inhibition.",
+        "reference": "J Clin Oncol"
+      },
+      {
+        "drug_a": "Allopurinol",
+        "drug_b": "Azathioprine",
+        "severity": "Major",
+        "mechanism": "XO inhibition → increased azathioprine levels",
+        "effect": "Myelosuppression, increased infection risk",
+        "Safer_alternative": "Febuxostat (with caution) or adjust doses",
+        "rationale": "Different metabolic pathway (monitor closely).",
+        "reference": "Ann Rheum Dis"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Sulfamethoxazole/Trimethoprim",
+        "severity": "Major",
+        "mechanism": "CYP2C9 inhibition + other mechanisms → increased warfarin effect",
+        "effect": "Increased bleeding risk",
+        "Safer_alternative": "Amoxicillin or Cefalexin",
+        "rationale": "Lower interaction potential.",
+        "reference": "Arch Intern Med"
+      },
+      {
+        "drug_a": "Quetiapine",
+        "drug_b": "Ketoconazole",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased quetiapine levels",
+        "effect": "Increased risk of quetiapine toxicity",
+        "Safer_alternative": "Terbinafine or topical antifungal",
+        "rationale": "Lower interaction potential.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ethinyl Estradiol",
+        "drug_b": "Carbamazepine",
+        "severity": "Major",
+        "mechanism": "CYP induction → decreased contraceptive levels",
+        "effect": "Contraceptive failure",
+        "Safer_alternative": "Non-hormonal IUD or higher-dose OC",
+        "rationale": "Requires a contraceptive method unaffected by enzymes.",
+        "reference": "Contraception Journal"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Amiodarone",
+        "severity": "Major",
+        "mechanism": "CYP2C9 inhibition → increased warfarin levels",
+        "effect": "Increased bleeding risk",
+        "Safer_alternative": "Reduce warfarin dose by 30-50%",
+        "rationale": "Requires proactive warfarin dose reduction.",
+        "reference": "NEJM"
+      },
+      {
+        "drug_a": "Metformin",
+        "drug_b": "Iodinated Contrast Dye",
+        "severity": "Major",
+        "mechanism": "Increased risk of contrast-induced lactic acidosis",
+        "effect": "Potential renal impairment and metabolic acidosis",
+        "Safer_alternative": "Withhold metformin before/after procedure",
+        "rationale": "Standard procedural management.",
+        "reference": "ACR Manual"
+      },
+      {
+        "drug_a": "Tacrolimus",
+        "drug_b": "Voriconazole",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased tacrolimus levels",
+        "effect": "Increased risk of tacrolimus toxicity",
+        "Safer_alternative": "Reduce tacrolimus dose by 2/3; monitor levels",
+        "rationale": "Requires aggressive dose reduction and monitoring.",
+        "reference": "Ther Drug Monit"
+      },
+      {
+        "drug_a": "Venlafaxine",
+        "drug_b": "Tramadol",
+        "severity": "Major",
+        "mechanism": "Increased serotonin levels",
+        "effect": "Increased risk of serotonin syndrome and seizures",
+        "Safer_alternative": "Morphine",
+        "rationale": "Lower serotonergic activity.",
+        "reference": "CNS Drugs"
+      },
+      {
+        "drug_a": "Colchicine",
+        "drug_b": "Clarithromycin",
+        "severity": "Major",
+        "mechanism": "P-gp/CYP3A4 inhibition → increased colchicine levels",
+        "effect": "Increased risk of colchicine toxicity",
+        "Safer_alternative": "Azithromycin",
+        "rationale": "Weaker inhibition of relevant pathways.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976., FDA Alert"
+      },
+      {
+        "drug_a": "Duloxetine",
+        "drug_b": "Tramadol",
+        "severity": "Major",
+        "mechanism": "Increased serotonin levels",
+        "effect": "Increased risk of serotonin syndrome",
+        "Safer_alternative": "Oxycodone",
+        "rationale": "Lower serotonergic activity.",
+        "reference": "FDA Adverse Event Reporting"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Fluoxetine",
+        "severity": "Major",
+        "mechanism": "CYP2C9 inhibition → increased warfarin levels",
+        "effect": "Increased bleeding risk",
+        "Safer_alternative": "Sertraline or Citalopram",
+        "rationale": "Less potent CYP2C9 inhibition.",
+        "reference": "BMJ"
+      },
+      {
+        "drug_a": "Lithium",
+        "drug_b": "Hydrochlorothiazide",
+        "severity": "Major",
+        "mechanism": "Decreased renal lithium clearance → increased lithium levels",
+        "effect": "Increased risk of lithium toxicity",
+        "Safer_alternative": "Loop Diuretic (Furosemide)",
+        "rationale": "Less effect on lithium clearance.",
+        "reference": "Am J Psychiatry"
+      },
+      {
+        "drug_a": "Risperidone",
+        "drug_b": "Carbamazepine",
+        "severity": "Major",
+        "mechanism": "CYP induction → decreased risperidone levels",
+        "effect": "Reduced antipsychotic efficacy",
+        "Safer_alternative": "Valproic Acid",
+        "rationale": "Not a CYP inducer.",
+        "reference": "J Clin Psychopharmacol"
+      },
+      {
+        "drug_a": "Salmeterol",
+        "drug_b": "Propranolol",
+        "severity": "Major",
+        "mechanism": "Antagonism of bronchodilator effect",
+        "effect": "Bronchospasm, reduced asthma control",
+        "Safer_alternative": "Cardioselective Beta Blocker (Atenolol)",
+        "rationale": "Less bronchoconstrictive effect.",
+        "reference": "Am J Respir Crit Care Med"
+      },
+      {
+        "drug_a": "Dextromethorphan",
+        "drug_b": "Phenelzine",
+        "severity": "Major",
+        "mechanism": "Increased serotonin levels",
+        "effect": "Increased risk of serotonin syndrome",
+        "Safer_alternative": "Guaifenesin (expectorant)",
+        "rationale": "No serotonergic activity.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Paroxetine",
+        "drug_b": "Tamoxifen",
+        "severity": "Major",
+        "mechanism": "CYP2D6 inhibition → decreased conversion to active endoxifen",
+        "effect": "Reduced efficacy of tamoxifen therapy",
+        "Safer_alternative": "Venlafaxine",
+        "rationale": "Less potent CYP2D6 inhibition.",
+        "reference": "J Natl Cancer Inst"
+      },
+      {
+        "drug_a": "Atorvastatin",
+        "drug_b": "Itraconazole",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased statin levels",
+        "effect": "Increased risk of myopathy",
+        "Safer_alternative": "Rosuvastatin",
+        "rationale": "Not primarily metabolized by CYP3A4.",
+        "reference": "Clin Pharmacol Ther"
+      },
+      {
+        "drug_a": "Levodopa",
+        "drug_b": "Metoclopramide",
+        "severity": "Major",
+        "mechanism": "Dopamine receptor antagonism → decreased levodopa efficacy",
+        "effect": "Worsening Parkinson's symptoms",
+        "Safer_alternative": "Domperidone (if available)",
+        "rationale": "Does not cross blood-brain barrier.",
+        "reference": "Mov Disord"
+      },
+      {
+        "drug_a": "Sodium Valproate",
+        "drug_b": "Meropenem",
+        "severity": "Major",
+        "mechanism": "Decreased valproate levels",
+        "effect": "Loss of seizure control",
+        "Safer_alternative": "Alternative antibiotic (e.g., Ceftazidime)",
+        "rationale": "No significant interaction.",
+        "reference": "Epilepsy Behav"
+      },
+      {
+        "drug_a": "Linezolid",
+        "drug_b": "Sertraline",
+        "severity": "Major",
+        "mechanism": "MAO inhibition + SSRI → increased serotonin levels",
+        "effect": "Increased risk of serotonin syndrome",
+        "Safer_alternative": "Vancomycin (if for MRSA)",
+        "rationale": "No MAO inhibition.",
+        "reference": "FDA Alert"
+      },
+      {
+        "drug_a": "Pimozide",
+        "drug_b": "Clarithromycin",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased pimozide levels",
+        "effect": "QT prolongation, arrhythmia risk",
+        "Safer_alternative": "Azithromycin",
+        "rationale": "Weaker CYP3A4 inhibition.",
+        "reference": "FDA Black Box Warning"
+      },
+      {
+        "drug_a": "Tizanidine",
+        "drug_b": "Ciprofloxacin",
+        "severity": "Major",
+        "mechanism": "CYP1A2 inhibition → increased tizanidine levels",
+        "effect": "Increased risk of tizanidine toxicity",
+        "Safer_alternative": "Levofloxacin or Baclofen",
+        "rationale": "Lower interaction potential.",
+        "reference": "Clin Pharmacol Ther"
+      },
+      {
+        "drug_a": "Thioridazine",
+        "drug_b": "Paroxetine",
+        "severity": "Major",
+        "mechanism": "CYP2D6 inhibition → increased thioridazine levels",
+        "effect": "QT prolongation, arrhythmia risk",
+        "Safer_alternative": "Sertraline",
+        "rationale": "Less potent CYP2D6 inhibition.",
+        "reference": "FDA Warning"
+      },
+      {
+        "drug_a": "Donepezil",
+        "drug_b": "Glycopyrrolate",
+        "severity": "Major",
+        "mechanism": "Pharmacodynamic antagonism",
+        "effect": "Decreased donepezil efficacy",
+        "Safer_alternative": "Alternative for secretions",
+        "rationale": "Directly opposing mechanisms.",
+        "reference": "J Am Geriatr Soc"
+      },
+      {
+        "drug_a": "Isotretinoin",
+        "drug_b": "Tetracycline",
+        "severity": "Major",
+        "mechanism": "Increased risk of benign intracranial hypertension",
+        "effect": "Headache, visual changes, papilledema",
+        "Safer_alternative": "Azithromycin",
+        "rationale": "Lower risk of this interaction.",
+        "reference": "J Am Acad Dermatol"
+      },
+      {
+        "drug_a": "Rivaroxaban",
+        "drug_b": "Carbamazepine",
+        "severity": "Major",
+        "mechanism": "CYP3A4/P-gp induction → decreased rivaroxaban levels",
+        "effect": "Reduced anticoagulant efficacy",
+        "Safer_alternative": "Valproic Acid or Lamotrigine",
+        "rationale": "Not a strong inducer.",
+        "reference": "J Thromb Haemost"
+      },
+      {
+        "drug_a": "Alfuzosin",
+        "drug_b": "Ketoconazole",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased alfuzosin levels",
+        "effect": "Hypotension, dizziness",
+        "Safer_alternative": "Terbinafine or Tamsulosin",
+        "rationale": "Lower interaction potential.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Phenelzine",
+        "drug_b": "Meperidine",
+        "severity": "Major",
+        "mechanism": "Increased serotonin levels",
+        "effect": "Serotonin syndrome & excitatory reaction",
+        "Safer_alternative": "Morphine",
+        "rationale": "Lower serotonergic activity.",
+        "reference": "Psychosomatics"
+      },
+      {
+        "drug_a": "Sildenafil",
+        "drug_b": "Ritonavir",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased sildenafil levels",
+        "effect": "Increased risk of sildenafil toxicity",
+        "Safer_alternative": "Use lowest possible sildenafil dose (25mg)",
+        "rationale": "Requires significant dose reduction.",
+        "reference": "FDA Label"
+      },
+      {
+        "drug_a": "Digoxin",
+        "drug_b": "Quinidine",
+        "severity": "Major",
+        "mechanism": "P-gp inhibition → increased digoxin levels",
+        "effect": "Increased risk of digoxin toxicity",
+        "Safer_alternative": "Other antiarrhythmics (e.g., Procainamide)",
+        "rationale": "Different mechanism.",
+        "reference": "Goodman & Gilman"
+      },
+      {
+        "drug_a": "Isosorbide Mononitrate",
+        "drug_b": "Riociguat",
+        "severity": "Major",
+        "mechanism": "Additive hypotension",
+        "effect": "Severe hypotension, cardiovascular collapse",
+        "Safer_alternative": "Alternative antianginal",
+        "rationale": "Contraindicated combination.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Apixaban",
+        "severity": "Major",
+        "mechanism": "Additive anticoagulant effect",
+        "effect": "Increased bleeding risk",
+        "Safer_alternative": "Use one anticoagulant only",
+        "rationale": "Avoid concurrent use.",
+        "reference": "CHEST Guidelines"
+      },
+      {
+        "drug_a": "Verapamil",
+        "drug_b": "Atenolol",
+        "severity": "Major",
+        "mechanism": "Additive bradycardia and hypotension",
+        "effect": "Severe bradycardia, syncope",
+        "Safer_alternative": "Monitor HR/BP; reduce dose",
+        "rationale": "Requires close monitoring.",
+        "reference": "Am J Cardiol"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Dabigatran",
+        "severity": "Major",
+        "mechanism": "Additive anticoagulant effect",
+        "effect": "Increased bleeding risk",
+        "Safer_alternative": "Use one anticoagulant only",
+        "rationale": "Avoid concurrent use.",
+        "reference": "CHEST Guidelines"
+      },
+      {
+        "drug_a": "Lithium",
+        "drug_b": "ACE Inhibitors (e.g., Lisinopril)",
+        "severity": "Major",
+        "mechanism": "Decreased renal lithium clearance → increased lithium levels",
+        "effect": "Increased risk of lithium toxicity",
+        "Safer_alternative": "ARB (e.g., Losartan) or CCB",
+        "rationale": "Less effect on lithium clearance.",
+        "reference": "Am J Psychiatry"
+      },
+      {
+        "drug_a": "Clozapine",
+        "drug_b": "Ciprofloxacin",
+        "severity": "Major",
+        "mechanism": "CYP1A2 inhibition → increased clozapine levels",
+        "effect": "Increased risk of clozapine toxicity",
+        "Safer_alternative": "Levofloxacin",
+        "rationale": "Lower interaction potential.",
+        "reference": "J Clin Psychiatry"
+      },
+      {
+        "drug_a": "Triamterene",
+        "drug_b": "Indomethacin",
+        "severity": "Major",
+        "mechanism": "Increased risk of nephrotoxicity & hyperkalemia",
+        "effect": "Acute kidney injury, dangerous hyperkalemia",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "Does not affect renal blood flow.",
+        "reference": "BMJ"
+      },
+      {
+        "drug_a": "Fluoxetine",
+        "drug_b": "Risperidone",
+        "severity": "Major",
+        "mechanism": "CYP2D6 inhibition → increased risperidone levels",
+        "effect": "Increased risk of risperidone toxicity",
+        "Safer_alternative": "Sertraline or Citalopram",
+        "rationale": "Less potent CYP2D6 inhibition.",
+        "reference": "J Clin Psychopharmacol"
+      },
+      {
+        "drug_a": "Methadone",
+        "drug_b": "Phenytoin",
+        "severity": "Major",
+        "mechanism": "CYP induction → decreased methadone levels",
+        "effect": "Opioid withdrawal symptoms",
+        "Safer_alternative": "Valproic Acid or Levetiracetam",
+        "rationale": "Not a CYP inducer.",
+        "reference": "JAMA"
+      },
+      {
+        "drug_a": "Tacrolimus",
+        "drug_b": "St. John's Wort",
+        "severity": "Major",
+        "mechanism": "CYP3A4 induction → decreased tacrolimus levels",
+        "effect": "Risk of organ rejection",
+        "Safer_alternative": "Avoid herbal product",
+        "rationale": "Patient education is critical.",
+        "reference": "Transplantation"
+      },
+      {
+        "drug_a": "Cisapride",
+        "drug_b": "Erythromycin",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased cisapride levels",
+        "effect": "QT prolongation, arrhythmia risk",
+        "Safer_alternative": "Metoclopramide or Domperidone",
+        "rationale": "Different metabolic pathway.",
+        "reference": "FDA Warning"
+      },
+      {
+        "drug_a": "Bupropion",
+        "drug_b": "Tamoxifen",
+        "severity": "Major",
+        "mechanism": "CYP2D6 inhibition → decreased conversion to active endoxifen",
+        "effect": "Reduced efficacy of tamoxifen therapy",
+        "Safer_alternative": "Venlafaxine",
+        "rationale": "Less potent CYP2D6 inhibition.",
+        "reference": "J Clin Oncol"
+      },
+      {
+        "drug_a": "Amiodarone",
+        "drug_b": "Simvastatin",
+        "severity": "Major",
+        "mechanism": "CYP3A4 inhibition → increased statin levels",
+        "effect": "Increased risk of myopathy",
+        "Safer_alternative": "Pravastatin or Rosuvastatin",
+        "rationale": "Not metabolized by CYP3A4.",
+        "reference": "Circulation"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Imatinib",
+        "severity": "Major",
+        "mechanism": "CYP2C9 inhibition → increased warfarin levels",
+        "effect": "Increased bleeding risk",
+        "Safer_alternative": "LMWH (e.g., enoxaparin)",
+        "rationale": "Predictable anticoagulation, no interaction.",
+        "reference": "J Clin Oncol"
+      },
+      {
+        "drug_a": "Duloxetine",
+        "drug_b": "Linezolid",
+        "severity": "Major",
+        "mechanism": "MAO inhibition + SSRI → increased serotonin levels",
+        "effect": "Increased risk of serotonin syndrome",
+        "Safer_alternative": "Tedizolid or Vancomycin",
+        "rationale": "Lower MAO inhibition potential.",
+        "reference": "FDA Alert"
+      },
+      {
+        "drug_a": "Rifampin",
+        "drug_b": "Verapamil",
+        "severity": "Major",
+        "mechanism": "CYP induction → decreased verapamil levels",
+        "effect": "Reduced antihypertensive efficacy",
+        "Safer_alternative": "Amlodipine",
+        "rationale": "Not metabolized by inducible enzymes.",
+        "reference": "Clin Pharmacol Ther"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Nafcillin",
+        "severity": "Major",
+        "mechanism": "CYP induction → decreased warfarin levels",
+        "effect": "Reduced anticoagulant efficacy",
+        "Safer_alternative": "Cefazolin",
+        "rationale": "Lower interaction potential.",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Trimipramine",
+        "drug_b": "Phenelzine",
+        "severity": "Major",
+        "mechanism": "Increased serotonin levels",
+        "effect": "Serotonin syndrome & hypertensive crisis",
+        "Safer_alternative": "Mirtazapine",
+        "rationale": "Different mechanism, safer profile.",
+        "reference": "Psychopharmacology"
+      }
+    ],
+    "moderate": [
+      {
+        "drug_a": "Atorvastatin",
+        "drug_b": "Azithromycin",
+        "severity": "Moderate",
+        "mechanism": "Weak CYP3A4 inhibition may slightly increase atorvastatin levels",
+        "effect": "Monitor for muscle pain",
+        "Safer_alternative": "Pravastatin or Rosuvastatin",
+        "rationale": "Not metabolized by CYP3A4 pathway",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Sertraline",
+        "drug_b": "Aspirin",
+        "severity": "Moderate",
+        "mechanism": "Increased antiplatelet effect",
+        "effect": "May slightly increase risk of bleeding",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "No antiplatelet effect",
+        "reference": "Micromedex"
+      },
+      {
+        "drug_a": "Levothyroxine",
+        "drug_b": "Iron Sulfate",
+        "severity": "Moderate",
+        "mechanism": "Binding in GI tract",
+        "effect": "Decreased absorption of levothyroxine",
+        "Safer_alternative": "Space doses by 4+ hours",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976., AACE Guidelines"
+      },
+      {
+        "drug_a": "Metformin",
+        "drug_b": "Cephalexin",
+        "severity": "Moderate",
+        "mechanism": "May increase metformin levels",
+        "effect": "Increased risk of lactic acidosis; monitor",
+        "Safer_alternative": "Other antibiotics if possible",
+        "rationale": "Lower interaction potential with other classes",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Omeprazole",
+        "drug_b": "Clopidogrel",
+        "severity": "Moderate",
+        "mechanism": "CYP2C19 inhibition may decrease clopidogrel efficacy",
+        "effect": "Potential reduced antiplatelet effect",
+        "Safer_alternative": "Pantoprazole or Famotidine",
+        "rationale": "Less potent CYP2C19 inhibition",
+        "reference": "Clinical Pharmacokinetics"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Acetaminophen",
+        "severity": "Moderate",
+        "mechanism": "Regular high doses may increase INR",
+        "effect": "Potential increased bleeding risk with high doses",
+        "Safer_alternative": "Use lowest effective dose",
+        "rationale": "Generally safe at low-to-moderate doses",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Citalopram",
+        "drug_b": "Tramadol",
+        "severity": "Moderate",
+        "mechanism": "Potential increased serotonin levels",
+        "effect": "Risk of serotonin syndrome; monitor",
+        "Safer_alternative": "Morphine or other opioids",
+        "rationale": "Lower serotonergic activity",
+        "reference": "FDA Adverse Event Reporting"
+      },
+      {
+        "drug_a": "Amlodipine",
+        "drug_b": "Simvastatin",
+        "severity": "Moderate",
+        "mechanism": "May slightly increase simvastatin levels",
+        "effect": "Monitor for muscle pain",
+        "Safer_alternative": "Pravastatin or Rosuvastatin",
+        "rationale": "Not metabolized by CYP3A4",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Digoxin",
+        "drug_b": "Omeprazole",
+        "severity": "Moderate",
+        "mechanism": "May slightly increase digoxin levels",
+        "effect": "Monitor for toxicity",
+        "Safer_alternative": "Pantoprazole",
+        "rationale": "Less interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Venlafaxine",
+        "drug_b": "Ibuprofen",
+        "severity": "Moderate",
+        "mechanism": "May increase risk of bleeding",
+        "effect": "Monitor for bleeding signs",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "No antiplatelet effect",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Lisinopril",
+        "drug_b": "Spironolactone",
+        "severity": "Moderate",
+        "mechanism": "Additive hyperkalemia risk",
+        "effect": "Monitor potassium levels",
+        "Safer_alternative": "Loop diuretic instead of spironolactone",
+        "rationale": "Promotes potassium excretion",
+        "reference": "Micromedex"
+      },
+      {
+        "drug_a": "Metoprolol",
+        "drug_b": "Diltiazem",
+        "severity": "Moderate",
+        "mechanism": "Additive effect on heart rate",
+        "effect": "Risk of bradycardia",
+        "Safer_alternative": "Monitor HR/BP; reduce dose",
+        "rationale": "Requires close hemodynamic monitoring",
+        "reference": "Am J Cardiol"
+      },
+      {
+        "drug_a": "Quetiapine",
+        "drug_b": "Lurasidone",
+        "severity": "Moderate",
+        "mechanism": "Additive CNS effects",
+        "effect": "Increased risk of drowsiness, dizziness",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Careful titration needed",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Duloxetine",
+        "drug_b": "Meloxicam",
+        "severity": "Moderate",
+        "mechanism": "May increase risk of bleeding",
+        "effect": "Monitor for bleeding signs",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "No antiplatelet effect",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Alprazolam",
+        "drug_b": "Cimetidine",
+        "severity": "Moderate",
+        "mechanism": "CYP3A4 inhibition may increase alprazolam levels",
+        "effect": "Increased sedation",
+        "Safer_alternative": "Famotidine or ranitidine",
+        "rationale": "Less potent CYP inhibition",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Escitalopram",
+        "drug_b": "Warfarin",
+        "severity": "Moderate",
+        "mechanism": "May increase INR",
+        "effect": "Monitor coagulation parameters",
+        "Safer_alternative": "Sertraline or citalopram",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Furosemide",
+        "drug_b": "Lisinopril",
+        "severity": "Moderate",
+        "mechanism": "Potential for first-dose hypotension",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Start with lower doses",
+        "rationale": "Gradual titration reduces risk",
+        "reference": "NEJM"
+      },
+      {
+        "drug_a": "Gabapentin",
+        "drug_b": "Hydrocodone",
+        "severity": "Moderate",
+        "mechanism": "Additive CNS depression",
+        "effect": "Increased dizziness, drowsiness",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Careful titration needed",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Hydrochlorothiazide",
+        "drug_b": "Ibuprofen",
+        "severity": "Moderate",
+        "mechanism": "NSAIDs may decrease diuretic efficacy",
+        "effect": "Monitor for edema",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "Does not inhibit prostaglandins",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Insulin",
+        "drug_b": "Pramlintide",
+        "severity": "Moderate",
+        "mechanism": "Additive effect on glucose control",
+        "effect": "Increased risk of hypoglycemia",
+        "Safer_alternative": "Adjust doses carefully",
+        "rationale": "Requires careful monitoring",
+        "reference": "Diabetes Care"
+      },
+      {
+        "drug_a": "Lamotrigine",
+        "drug_b": "Valproic Acid",
+        "severity": "Moderate",
+        "mechanism": "Valproic acid inhibits lamotrigine metabolism",
+        "effect": "Increased lamotrigine levels",
+        "Safer_alternative": "Slow lamotrigine titration",
+        "rationale": "Requires dose adjustment",
+        "reference": "Epilepsia Journal"
+      },
+      {
+        "drug_a": "Losartan",
+        "drug_b": "Ibuprofen",
+        "severity": "Moderate",
+        "mechanism": "NSAIDs may decrease antihypertensive efficacy",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "No effect on blood pressure",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Memantine",
+        "drug_b": "Carbonic Anhydrase Inhibitors",
+        "severity": "Moderate",
+        "mechanism": "May increase risk of renal stone formation",
+        "effect": "Monitor renal function",
+        "Safer_alternative": "Alternative treatments if available",
+        "rationale": "Lower risk with other options",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Nitrofurantoin",
+        "drug_b": "Magnesium Trisilicate",
+        "severity": "Moderate",
+        "mechanism": "Antacids may decrease nitrofurantoin absorption",
+        "effect": "Reduced antibiotic efficacy",
+        "Safer_alternative": "Space doses by 2+ hours",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Olanzapine",
+        "drug_b": "Diazepam",
+        "severity": "Moderate",
+        "mechanism": "Additive CNS depression",
+        "effect": "Increased sedation",
+        "Safer_alternative": "Use lower doses; monitor closely",
+        "rationale": "Requires cautious dosing",
+        "reference": "Psychopharmacology"
+      },
+      {
+        "drug_a": "Pantoprazole",
+        "drug_b": "Warfarin",
+        "severity": "Moderate",
+        "mechanism": "May slightly increase INR",
+        "effect": "Monitor coagulation parameters",
+        "Safer_alternative": "H2 blockers if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Quetiapine",
+        "drug_b": "Fluoxetine",
+        "severity": "Moderate",
+        "mechanism": "May increase quetiapine levels",
+        "effect": "Monitor for drowsiness",
+        "Safer_alternative": "Sertraline or citalopram",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ranitidine",
+        "drug_b": "Warfarin",
+        "severity": "Moderate",
+        "mechanism": "May slightly increase INR",
+        "effect": "Monitor coagulation parameters",
+        "Safer_alternative": "Famotidine",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Sertraline",
+        "drug_b": "Tolbutamide",
+        "severity": "Moderate",
+        "mechanism": "May increase tolbutamide levels",
+        "effect": "Monitor for hypoglycemia",
+        "Safer_alternative": "Other antidepressants if needed",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Trazodone",
+        "drug_b": "Phenytoin",
+        "severity": "Moderate",
+        "mechanism": "May alter levels of both drugs",
+        "effect": "Monitor drug levels if possible",
+        "Safer_alternative": "Alternative antidepressant",
+        "rationale": "More predictable pharmacokinetics",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Valsartan",
+        "drug_b": "Aliskiren",
+        "severity": "Moderate",
+        "mechanism": "Additive hyperkalemia risk",
+        "effect": "Monitor potassium levels",
+        "Safer_alternative": "Alternative antihypertensive combination",
+        "rationale": "Lower hyperkalemia risk",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Zolpidem",
+        "drug_b": "Ciprofloxacin",
+        "severity": "Moderate",
+        "mechanism": "May increase zolpidem levels",
+        "effect": "Increased risk of drowsiness",
+        "Safer_alternative": "Levofloxacin",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Amitriptyline",
+        "drug_b": "Phenelzine",
+        "severity": "Moderate",
+        "mechanism": "Increased risk of serotonin syndrome",
+        "effect": "Monitor for serotonin syndrome symptoms",
+        "Safer_alternative": "Mirtazapine",
+        "rationale": "Different mechanism, safer profile",
+        "reference": "Psychopharmacology"
+      },
+      {
+        "drug_a": "Bupropion",
+        "drug_b": "Levodopa",
+        "severity": "Moderate",
+        "mechanism": "May increase risk of hypertension and side effects",
+        "effect": "Monitor blood pressure and Parkinson's symptoms",
+        "Safer_alternative": "Other antidepressants if needed",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ciprofloxacin",
+        "drug_b": "Theophylline",
+        "severity": "Moderate",
+        "mechanism": "CYP1A2 inhibition may increase theophylline levels",
+        "effect": "Monitor theophylline levels",
+        "Safer_alternative": "Levofloxacin",
+        "rationale": "Lower interaction potential",
+        "reference": "Chest Journal"
+      },
+      {
+        "drug_a": "Diclofenac",
+        "drug_b": "Lithium",
+        "severity": "Moderate",
+        "mechanism": "May increase lithium levels",
+        "effect": "Monitor lithium levels",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "Does not affect lithium levels",
+        "reference": "Acta Psychiatr Scand"
+      },
+      {
+        "drug_a": "Escitalopram",
+        "drug_b": "Linezolid",
+        "severity": "Moderate",
+        "mechanism": "Potential increased risk of serotonin syndrome",
+        "effect": "Monitor for serotonin syndrome symptoms",
+        "Safer_alternative": "Vancomycin if appropriate",
+        "rationale": "No MAO inhibition",
+        "reference": "FDA Alert"
+      },
+      {
+        "drug_a": "Fluconazole",
+        "drug_b": "Alfentanil",
+        "severity": "Moderate",
+        "mechanism": "May increase alfentanil levels",
+        "effect": "Increased risk of respiratory depression",
+        "Safer_alternative": "Other antifungals if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Glipizide",
+        "drug_b": "Fluconazole",
+        "severity": "Moderate",
+        "mechanism": "May increase glipizide levels",
+        "effect": "Monitor for hypoglycemia",
+        "Safer_alternative": "Other antifungals if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Hydralazine",
+        "drug_b": "Diazoxide",
+        "severity": "Moderate",
+        "mechanism": "Additive hypotensive effect",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Use one agent at a time",
+        "rationale": "Excessive hypotension risk",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Isoniazid",
+        "drug_b": "Carbamazepine",
+        "severity": "Moderate",
+        "mechanism": "May increase carbamazepine levels",
+        "effect": "Monitor carbamazepine levels",
+        "Safer_alternative": "Other antibiotics if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Levothyroxine",
+        "drug_b": "Sucralfate",
+        "severity": "Moderate",
+        "mechanism": "Binding in GI tract",
+        "effect": "Decreased absorption of levothyroxine",
+        "Safer_alternative": "Space doses by 4+ hours",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Metronidazole",
+        "drug_b": "Warfarin",
+        "severity": "Moderate",
+        "mechanism": "May increase INR",
+        "effect": "Monitor coagulation parameters",
+        "Safer_alternative": "Other antibiotics if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Nifedipine",
+        "drug_b": "Quinidine",
+        "severity": "Moderate",
+        "mechanism": "May increase quinidine levels",
+        "effect": "Monitor quinidine levels",
+        "Safer_alternative": "Other calcium channel blockers",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Oxcarbazepine",
+        "drug_b": "Felodipine",
+        "severity": "Moderate",
+        "mechanism": "May decrease felodipine levels",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Other antiepileptics if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Paroxetine",
+        "drug_b": "Procyclidine",
+        "severity": "Moderate",
+        "mechanism": "May increase procyclidine levels",
+        "effect": "Increased anticholinergic side effects",
+        "Safer_alternative": "Other SSRIs if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Quinine",
+        "drug_b": "Digoxin",
+        "severity": "Moderate",
+        "mechanism": "May increase digoxin levels",
+        "effect": "Monitor for digoxin toxicity",
+        "Safer_alternative": "Other antimalarials if appropriate",
+        "rationale": "Lower interaction potential",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Rifampin",
+        "drug_b": "Verapamil",
+        "severity": "Moderate",
+        "mechanism": "CYP induction may decrease verapamil levels",
+        "effect": "Reduced efficacy",
+        "Safer_alternative": "Amlodipine",
+        "rationale": "Not metabolized by inducible enzymes",
+        "reference": "Clin Pharmacol Ther"
+      },
+      {
+        "drug_a": "Salmeterol",
+        "drug_b": "Timolol",
+        "severity": "Moderate",
+        "mechanism": "Antagonism of bronchodilator effect",
+        "effect": "Reduced asthma control",
+        "Safer_alternative": "Cardioselective beta blocker",
+        "rationale": "Less bronchoconstrictive effect",
+        "reference": "Am J Respir Crit Care Med"
+      },
+      {
+        "drug_a": "Telithromycin",
+        "drug_b": "Midazolam",
+        "severity": "Moderate",
+        "mechanism": "CYP3A4 inhibition may increase midazolam levels",
+        "effect": "Increased sedation",
+        "Safer_alternative": "Azithromycin",
+        "rationale": "Weaker CYP3A4 inhibition",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Valproic Acid",
+        "drug_b": "Meropenem",
+        "severity": "Moderate",
+        "mechanism": "May decrease valproic acid levels",
+        "effect": "Reduced efficacy",
+        "Safer_alternative": "Alternative antibiotic",
+        "rationale": "No significant interaction",
+        "reference": "Epilepsy Behav"
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Dronedarone",
+        "severity": "Moderate",
+        "mechanism": "May increase INR",
+        "effect": "Monitor coagulation parameters",
+        "Safer_alternative": "Amiodarone (with dose adjustment)",
+        "rationale": "Different warfarin dose management",
+        "reference": "Eur Heart Journal"
+      }
+    ],
+    "minor": [
+      {
+        "drug_a": "Atenolol",
+        "drug_b": "Diphenhydramine",
+        "severity": "Minor",
+        "mechanism": "Additive sedative effects",
+        "effect": "Increased drowsiness",
+        "Safer_alternative": "Loratadine or Cetirizine",
+        "rationale": "Non-sedating antihistamines",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Cephalexin",
+        "drug_b": "Metformin",
+        "severity": "Minor",
+        "mechanism": "May slightly increase metformin levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Codeine",
+        "drug_b": "Chlorpromazine",
+        "severity": "Minor",
+        "mechanism": "Additive CNS depression",
+        "effect": "Increased drowsiness",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Careful titration needed",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Diazepam",
+        "drug_b": "Isoniazid",
+        "severity": "Minor",
+        "mechanism": "May slightly increase diazepam levels",
+        "effect": "Minimal increase in sedation",
+        "Safer_alternative": "Monitor or consider lorazepam",
+        "rationale": "Lorazepam has simpler metabolism",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Enalapril",
+        "drug_b": "Amiloride",
+        "severity": "Minor",
+        "mechanism": "Additive hyperkalemia risk",
+        "effect": "Monitor potassium levels",
+        "Safer_alternative": "Loop diuretic instead of amiloride",
+        "rationale": "Promotes potassium excretion",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Famotidine",
+        "drug_b": "Cetirizine",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Guaifenesin",
+        "drug_b": "Dextromethorphan",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Hydrocortisone",
+        "drug_b": "Indapamide",
+        "severity": "Minor",
+        "mechanism": "Additive hypokalemia risk",
+        "effect": "Monitor potassium levels",
+        "Safer_alternative": "Monitor or supplement potassium",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ibuprofen",
+        "drug_b": "Pseudoephedrine",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Lactulose",
+        "drug_b": "Electrolyte Supplements",
+        "severity": "Minor",
+        "mechanism": "May alter electrolyte absorption",
+        "effect": "Monitor electrolytes if concerned",
+        "Safer_alternative": "Space doses if needed",
+        "rationale": "Minimal clinical significance",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Mupirocin",
+        "drug_b": "Betamethasone",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Naproxen",
+        "drug_b": "Penicillin VK",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Olopatadine",
+        "drug_b": "Loratadine",
+        "severity": "Minor",
+        "mechanism": "Additive anticholinergic effects",
+        "effect": "Increased dry mouth, possible drowsiness",
+        "Safer_alternative": "Use one agent at a time",
+        "rationale": "Duplicative therapy",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Pantoprazole",
+        "drug_b": "Sucralfate",
+        "severity": "Minor",
+        "mechanism": "May decrease absorption of PPI",
+        "effect": "Space doses by 2+ hours",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Quetiapine",
+        "drug_b": "Ramipril",
+        "severity": "Minor",
+        "mechanism": "Potential for additive hypotension",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ranitidine",
+        "drug_b": "Furosemide",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Sennosides",
+        "drug_b": "Docusate",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Tetracycline",
+        "drug_b": "Zinc Supplements",
+        "severity": "Minor",
+        "mechanism": "Chelation; decreased absorption of both",
+        "effect": "Space doses by 2+ hours",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ursodiol",
+        "drug_b": "Cholestyramine",
+        "severity": "Minor",
+        "mechanism": "Binds ursodiol; decreased efficacy",
+        "effect": "Space doses by 5+ hours",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Vitamin C",
+        "drug_b": "Fluphenazine",
+        "severity": "Minor",
+        "mechanism": "May decrease fluphenazine levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Ginseng",
+        "severity": "Minor",
+        "mechanism": "May decrease anticoagulant effect",
+        "effect": "Monitor INR",
+        "Safer_alternative": "Avoid herbal product",
+        "rationale": "Patient education is important",
+        "reference": "Ann Pharmacother"
+      },
+      {
+        "drug_a": "Xylometazoline",
+        "drug_b": "Phenylephrine",
+        "severity": "Minor",
+        "mechanism": "Additive vasoconstrictive effects",
+        "effect": "Generally safe for short-term use",
+        "Safer_alternative": "Use one agent at a time",
+        "rationale": "Duplicative therapy",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Zinc",
+        "drug_b": "Ciprofloxacin",
+        "severity": "Minor",
+        "mechanism": "Chelation; decreased ciprofloxacin absorption",
+        "effect": "Space doses by 2+ hours",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Amoxicillin",
+        "drug_b": "Allopurinol",
+        "severity": "Minor",
+        "mechanism": "Increased risk of amoxicillin rash",
+        "effect": "Generally not serious",
+        "Safer_alternative": "Other antibiotics if history of rash",
+        "rationale": "Lower risk with other antibiotics",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Bisoprolol",
+        "drug_b": "Rivastigmine",
+        "severity": "Minor",
+        "mechanism": "Additive bradycardia risk",
+        "effect": "Monitor heart rate",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Chlorthalidone",
+        "drug_b": "Naproxen",
+        "severity": "Minor",
+        "mechanism": "NSAIDs may decrease diuretic efficacy",
+        "effect": "Monitor for edema",
+        "Safer_alternative": "Acetaminophen",
+        "rationale": "Does not affect diuretic efficacy",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Doxycycline",
+        "drug_b": "Barbiturates",
+        "severity": "Minor",
+        "mechanism": "CYP induction may decrease doxycycline levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Erythromycin",
+        "drug_b": "Bromocriptine",
+        "severity": "Minor",
+        "mechanism": "May increase bromocriptine levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Fluoxetine",
+        "drug_b": "Perphenazine",
+        "severity": "Minor",
+        "mechanism": "May increase perphenazine levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Glyburide",
+        "drug_b": "Colestipol",
+        "severity": "Minor",
+        "mechanism": "Binds glyburide; decreased absorption",
+        "effect": "Space doses by 2+ hours",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Haloperidol",
+        "drug_b": "Methyldopa",
+        "severity": "Minor",
+        "mechanism": "Additive hypotensive effects",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Insulin",
+        "drug_b": "Clonidine",
+        "severity": "Minor",
+        "mechanism": "May decrease insulin secretion",
+        "effect": "Monitor glucose levels",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ketoconazole",
+        "drug_b": "Buspirone",
+        "severity": "Minor",
+        "mechanism": "May increase buspirone levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Levofloxacin",
+        "drug_b": "Didanosine",
+        "severity": "Minor",
+        "mechanism": "Chelation with buffered didanosine",
+        "effect": "Decreased absorption",
+        "Safer_alternative": "Space doses by 2+ hours",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Metoclopramide",
+        "drug_b": "Levodopa",
+        "severity": "Minor",
+        "mechanism": "Antagonizes levodopa's effect",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Domperidone if available",
+        "rationale": "Does not cross blood-brain barrier",
+        "reference": "Mov Disord"
+      },
+      {
+        "drug_a": "Nystatin",
+        "drug_b": "Clotrimazole",
+        "severity": "Minor",
+        "mechanism": "No significant interaction expected",
+        "effect": "Generally safe to use together",
+        "Safer_alternative": "None needed",
+        "rationale": "No known interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Omeprazole",
+        "drug_b": "Ketoconazole",
+        "severity": "Minor",
+        "mechanism": "Increased gastric pH may decrease ketoconazole absorption",
+        "effect": "Space doses or use liquid formulation",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Optimizes absorption",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Phenytoin",
+        "drug_b": "Pyridoxine",
+        "severity": "Minor",
+        "mechanism": "May decrease phenytoin levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Quetiapine",
+        "drug_b": "Thioridazine",
+        "severity": "Minor",
+        "mechanism": "Additive QT prolongation risk",
+        "effect": "Monitor ECG if concerned",
+        "Safer_alternative": "Avoid combination if possible",
+        "rationale": "Theoretical risk, usually minimal",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Risperidone",
+        "drug_b": "Carbamazepine",
+        "severity": "Minor",
+        "mechanism": "CYP induction may decrease risperidone levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "J Clin Psychopharmacol"
+      },
+      {
+        "drug_a": "Spironolactone",
+        "drug_b": "Digoxin",
+        "severity": "Minor",
+        "mechanism": "May slightly increase digoxin levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Telmisartan",
+        "drug_b": "Digoxin",
+        "severity": "Minor",
+        "mechanism": "May slightly increase digoxin levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Valaciclovir",
+        "drug_b": "Cimetidine",
+        "severity": "Minor",
+        "mechanism": "May increase valaciclovir levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Avocado",
+        "severity": "Minor",
+        "mechanism": "Vitamin K content may decrease anticoagulant effect",
+        "effect": "Maintain consistent dietary intake",
+        "Safer_alternative": "Consistent dietary intake",
+        "rationale": "Patient education on maintaining consistent diet",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Zafirlukast",
+        "drug_b": "Theophylline",
+        "severity": "Minor",
+        "mechanism": "May increase theophylline levels",
+        "effect": "Monitor theophylline levels",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Ann Pharmacother"
+      },
+      {
+        "drug_a": "Alendronate",
+        "drug_b": "Calcium Carbonate",
+        "severity": "Minor",
+        "mechanism": "Binding; decreased alendronate absorption",
+        "effect": "Space doses by 2+ hours",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Prevents binding interaction",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Bumetanide",
+        "drug_b": "Lithium",
+        "severity": "Minor",
+        "mechanism": "Diuretic-induced sodium loss may increase lithium levels",
+        "effect": "Monitor lithium levels",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Cimetidine",
+        "drug_b": "Metronidazole",
+        "severity": "Minor",
+        "mechanism": "May increase metronidazole levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Diclofenac",
+        "drug_b": "Colchicine",
+        "severity": "Minor",
+        "mechanism": "May increase colchicine levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Esomeprazole",
+        "drug_b": "Voriconazole",
+        "severity": "Minor",
+        "mechanism": "May increase voriconazole levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Folic Acid",
+        "drug_b": "Phenytoin",
+        "severity": "Minor",
+        "mechanism": "May decrease phenytoin levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Glimepiride",
+        "drug_b": "Rifampin",
+        "severity": "Minor",
+        "mechanism": "CYP induction may decrease glimepiride levels",
+        "effect": "Monitor glucose levels",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Hydroxychloroquine",
+        "drug_b": "Digoxin",
+        "severity": "Minor",
+        "mechanism": "May increase digoxin levels",
+        "effect": "Monitor digoxin levels",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Itraconazole",
+        "drug_b": "Alprazolam",
+        "severity": "Minor",
+        "mechanism": "May increase alprazolam levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Linagliptin",
+        "drug_b": "Rifampin",
+        "severity": "Minor",
+        "mechanism": "May slightly decrease linagliptin levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Montelukast",
+        "drug_b": "Gemfibrozil",
+        "severity": "Minor",
+        "mechanism": "May increase montelukast levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Nitroglycerin",
+        "drug_b": "Sildenafil",
+        "severity": "Minor",
+        "mechanism": "Additive hypotensive effect (Major if taken within 24h)",
+        "effect": "Avoid combination within 24 hours",
+        "Safer_alternative": "Space doses appropriately",
+        "rationale": "Risk decreases with time separation",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Ondansetron",
+        "drug_b": "Apomorphine",
+        "severity": "Minor",
+        "mechanism": "Additive hypotensive effect",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Propranolol",
+        "drug_b": "Chlorpromazine",
+        "severity": "Minor",
+        "mechanism": "May increase levels of both drugs",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Quinine",
+        "drug_b": "Atorvastatin",
+        "severity": "Minor",
+        "mechanism": "May increase atorvastatin levels",
+        "effect": "Monitor for muscle pain",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Rosuvastatin",
+        "drug_b": "Fenofibrate",
+        "severity": "Minor",
+        "mechanism": "Increased risk of myopathy",
+        "effect": "Monitor for muscle pain",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Sitagliptin",
+        "drug_b": "Digoxin",
+        "severity": "Minor",
+        "mechanism": "May slightly increase digoxin levels",
+        "effect": "Minimal clinical significance",
+        "Safer_alternative": "Monitor or continue with caution",
+        "rationale": "Interaction is typically not clinically relevant",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Tamsulosin",
+        "drug_b": "Tadalafil",
+        "severity": "Minor",
+        "mechanism": "Additive hypotensive effect",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Vardenafil",
+        "drug_b": "Nicardipine",
+        "severity": "Minor",
+        "mechanism": "Additive hypotensive effect",
+        "effect": "Monitor blood pressure",
+        "Safer_alternative": "Monitor or adjust doses",
+        "rationale": "Usually manageable with monitoring",
+        "reference": "Knox C, Wilson M, Klinger CM, et al. DrugBank 6.0: the DrugBank Knowledgebase for 2024. Nucleic Acids Res. 2024 Jan 5;52(D1):D1265-D1275. doi: 10.1093/nar/gkad976."
+      },
+      {
+        "drug_a": "Warfarin",
+        "drug_b": "Ginkgo Biloba",
+        "severity": "Minor",
+        "mechanism": "May increase bleeding risk",
+        "effect": "Monitor for bleeding signs",
+        "Safer_alternative": "Avoid herbal product",
+        "rationale": "Patient education is important",
+        "reference": "Ann Pharmacother"
+      }
+    ]
+  }
+}

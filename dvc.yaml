@@ -1,0 +1,13 @@
+stages:
+  fetch_smiles:
+    cmd: python src/fetch_smiles.py
+    deps:
+      - data/raw_ddi.csv
+      - src/fetch_smiles.py
+    outs:
+      - data/chemical_ddi.csv
+  train:
+    cmd: python src/train.py
+    deps:
+      - data/chemical_ddi.csv
+      - src/train.py

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+*.egg
+
+# Environment
+.venv
+.python-version
+.env
+
+# MLflow
+mlflow.db
+mlruns/
+
+# Generated model artifacts
+models/
+results.json
+
+# Generated data caches
+data/features.npy
+data/labels.npy
+
+# Docs / PDFs (not source)
+*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# DVC
+.dvc/
