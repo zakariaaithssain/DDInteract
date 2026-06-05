@@ -1,0 +1,29 @@
+schema: '2.0'
+stages:
+  fetch_smiles:
+    cmd: python src/fetch_smiles.py
+    deps:
+    - path: data/raw_ddi.csv
+      hash: md5
+      md5: d88d5baf1f1a6bd7870a7c9325aab68b
+      size: 18168
+    - path: src/fetch_smiles.py
+      hash: md5
+      md5: e122469d221194bd5b16eb5d2ec05ad1
+      size: 1364
+    outs:
+    - path: data/chemical_ddi.csv
+      hash: md5
+      md5: fc7dcf43957717d00d13eb715cb0722a
+      size: 23327
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/chemical_ddi.csv
+      hash: md5
+      md5: fc7dcf43957717d00d13eb715cb0722a
+      size: 23327
+    - path: src/train.py
+      hash: md5
+      md5: 25e9f83f50b74aadc53df0132f6abd83
+      size: 1332
