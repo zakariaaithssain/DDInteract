@@ -1,112 +1,113 @@
-# Running the DDI Pipeline
+# DDI Severity Predictor — MLOps Pipeline
 
-## Prerequisites
+Predict drug-drug interaction severity (Minor / Moderate / Major) from chemical structure (SMILES → Morgan fingerprints).
 
-Ensure your Python environment has all dependencies:
+---
+
+## Quick Start
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+make install
+make train       # trains 5 models × 3 hyperparameter sets, logs to MLflow
+make test        # runs pytest
+make api         # starts FastAPI at :8000
 ```
 
 ---
 
-## What Still Needs Setup
+## Project Structure
 
-### 1. Initialize DVC
-
-DVC is not yet initialized in this repo. Run:
-
-```bash
-dvc init
-git add .dvc/config .dvcignore
-git commit -m "init DVC"
 ```
-
-Then track the raw input data (DVC will hash it and keep it out of Git):
-
-```bash
-dvc add data/raw_ddi.csv
-git add data/raw_ddi.csv.dvc data/.gitignore
-git commit -m "track raw DDI data with DVC"
-```
-
-### 2. Configure MLflow Tracking (Optional)
-
-By default MLflow logs to the local `mlruns/` directory and `mlflow.db`. This works out of the box. If you want to use a remote tracking server, set:
-
-```bash
-export MLFLOW_TRACKING_URI=<your-server-uri>
-```
-
-### 3. DVC Remote (for sharing data)
-
-To share or version data across machines, add a remote (S3, GCS, SSH, etc.):
-
-```bash
-dvc remote add myremote s3://my-bucket/pfa-data
-dvc push
+src/
+  logger.py       — Logging setup (console + file rotation)
+  features.py     — RDKit feature engineering (fingerprints, descriptors, Tanimoto)
+  models.py       — Model definitions + hyperparameter grids (5 models × 3 configs)
+  train.py        — Training loop with MLflow tracking, caching, model registry
+  export_model.py — Export best model + scaler + PCA as local joblib files
+  api.py          — FastAPI server for inference
+  drift.py        — Data drift detection via KS test on fingerprint density
+  fetch_smiles.py — PubChem SMILES resolution (drug name → SMILES)
+  static/
+    index.html    — Minimal frontend (vanilla JS)
+data/
+  chemical_ddi.csv — SMILES-enriched training data (109K pairs)
+config/
+  config.yaml      — Hydra experiment config
+  features/default.yaml
+  training/default.yaml
+  models/default.yaml
+tests/
+  test_chemistry.py — RDKit fingerprint validation
+  test_model.py     — Feature dimension assertions
 ```
 
 ---
 
-## How to Run
+## Commands
 
-### Ad-hoc (step-by-step)
+| What | Command |
+|---|---|
+| Train all models | `make train` or `python src/train.py` |
+| Run tests | `make test` or `pytest -v tests/` |
+| Lint | `make lint` or `ruff check src/ tests/` |
+| Format | `make format` or `ruff format src/ tests/` |
+| Export best model | `make export` or `python src/export_model.py` |
+| Start API | `make api` or `uvicorn src.api:app` |
+| Reproduce pipeline | `make dvc-repro` or `dvc repro` |
+| Clean artifacts | `make clean` |
+| MLflow UI | `mlflow ui` |
 
-```bash
-source .venv/bin/activate
+---
 
-# Step 1 — Fetch SMILES from PubChem
-python src/fetch_smiles.py
+## Pipeline
 
-# Step 2 — Train the XGBoost model
-python src/train.py
 ```
-
-### Orchestrated via DVC
-
-```bash
-source .venv/bin/activate
-dvc repro
-```
-
-DVC will skip the `fetch_smiles` stage if `data/chemical_ddi.csv` is already up to date, and skip `train` if nothing changed. Use `dvc repro --force` to rerun everything.
-
-### Run Tests
-
-```bash
-source .venv/bin/activate
-pytest -v tests/
+data/chemical_ddi.csv
+       │
+       ▼
+src/train.py
+  ├── features.py   (RDKit → fingerprints, descriptors, Tanimoto)
+  ├── models.py     (LR, SVC, RF, KNN, XGBoost × 3 param sets each)
+  ├── caching       (skips RDKit if features.npy exists)
+  └── MLflow        (per-class metrics, macro-F1, Kappa, MAE, CM plots)
+       │
+       ├── Model Registry  →  "DDI-Severity" (production alias)
+       │
+       ▼
+src/export_model.py  →  models/model.joblib + scaler + PCA
+       │
+       ▼
+src/api.py           →  FastAPI :8000  (+ static/index.html frontend)
 ```
 
 ---
 
-## Pipeline Overview
+## MLOps Features
 
-```
-data/raw_ddi.csv
-       │
-       ▼
-src/fetch_smiles.py    ←── pubchempy (PubChem API)
-       │
-       ▼
-data/chemical_ddi.csv  ←── SMILES + numeric labels
-       │
-       ▼
-src/train.py           ←── RDKit fingerprints + XGBoost
-       │
-       ▼
-    MLflow run         ←── metrics, model artifacts
-```
+| Feature | Status | Details |
+|---|---|---|
+| **DVC pipeline** | ✅ | `dvc.yaml` with training stage, `dvc repro` one-command reproduction |
+| **MLflow tracking** | ✅ | Per-class metrics, macro-F1, Kappa, MAE, confusion matrix plots |
+| **MLflow Model Registry** | ✅ | Best model auto-registered as `DDI-Severity`, promoted to `production` |
+| **Hyperparameter search** | ✅ | Grid search over 3 configs × 5 model families (15 runs) |
+| **Feature caching** | ✅ | `data/features.npy` — avoids 8-min RDKit rebuild on re-run |
+| **Model export** | ✅ | `make export` — dumps model + scaler + PCA as local joblib |
+| **FastAPI serving** | ✅ | `make api` — inference endpoint with probability output |
+| **Frontend** | ✅ | Minimal vanilla JS UI at `/` |
+| **Structured logging** | ✅ | `src/logger.py` — console + rotating file handler |
+| **Pre-commit hooks** | ✅ | `.pre-commit-config.yaml` — ruff lint/format, mypy, pytest |
+| **CI/CD** | ✅ | GitHub Actions: lint → test → train + model validation gate (≥0.76) |
+| **Docker** | ✅ | `Dockerfile` — slim Python image, ready for deployment |
+| **Config management** | ✅ | Hydra configs in `config/` — override without touching code |
+| **Data drift monitoring** | ✅ | `src/drift.py` — KS test on fingerprint density vs training distribution |
+| **Makefile** | ✅ | `make train/test/api/lint/format/export/clean` |
 
-## CI/CD (GitHub Actions)
+---
 
-The workflow at `.github/workflows/ci-cd.yaml` runs automatically on push/PR:
+## Metrics Tracked (per run)
 
-1. Installs Python + cached dependencies
-2. Runs `pytest`
-3. Executes `dvc repro`
-
-It expects DVC to already be initialized in the repo so that `dvc repro` can resolve the pipeline stages. Push the `.dvc/` directory and any `.dvc` files to GitHub for CI to work.
+- **Per-class**: Precision, Recall, F1 (Minor / Moderate / Major)
+- **Aggregate**: Macro F1, Weighted F1, Accuracy
+- **Ordinal**: Cohen's Kappa, MAE
+- **CV**: 3-fold mean + std
+- **Artifacts**: Confusion matrix PNG, model pickle

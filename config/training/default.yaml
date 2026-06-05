@@ -1,0 +1,5 @@
+cv_folds: 3
+cache_features: true
+feature_cache: data/features.npy
+label_cache: data/labels.npy
+export_model: true

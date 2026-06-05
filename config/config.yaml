@@ -1,0 +1,18 @@
+defaults:
+  - features: default
+  - training: default
+  - models: default
+  - _self_
+
+data:
+  path: data/chemical_ddi.csv
+  test_size: 0.2
+  random_state: 42
+
+experiment:
+  name: DDI_Structural_Severity
+  registry_name: DDI-Severity
+
+logging:
+  level: INFO
+  file: logs/pipeline.log

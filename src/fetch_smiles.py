@@ -2,6 +2,7 @@ import pandas as pd
 import pubchempy as pcp
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from logger import logger
 
 RAW_PATH = "data/raw_ddi.csv"
 OUT_PATH = "data/chemical_ddi.csv"
@@ -50,7 +51,7 @@ def get_smiles(drug_name: str) -> tuple[str, str | None]:
 def main():
     df = pd.read_csv(RAW_PATH)
     unique_drugs = sorted(set(df["drug_a"].unique()) | set(df["drug_b"].unique()))
-    print(f"Found {len(unique_drugs)} unique drug names", flush=True)
+    logger.info("Found %d unique drug names", len(unique_drugs))
 
     done = 0
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
@@ -59,7 +60,7 @@ def main():
             done += 1
             if done % 100 == 0:
                 resolved = sum(1 for v in CACHE.values() if v is not None)
-                print(f"  {done}/{len(unique_drugs)} done, {resolved} resolved", flush=True)
+                logger.info("  %d/%d done, %d resolved", done, len(unique_drugs), resolved)
 
     df["smiles_a"] = df["drug_a"].map(CACHE)
     df["smiles_b"] = df["drug_b"].map(CACHE)
@@ -67,14 +68,14 @@ def main():
 
     before = len(df)
     df = df.dropna(subset=["smiles_a", "smiles_b", "severity_label"])
-    print(f"Dropped {before - len(df)} rows with unresolved drugs", flush=True)
+    logger.info("Dropped %d rows with unresolved drugs", before - len(df))
 
     df = df.drop(columns=["mechanism", "effect"], errors="ignore")
     df.to_csv(OUT_PATH, index=False)
-    print(f"Saved chemical DDI data to {OUT_PATH} ({len(df)} rows)", flush=True)
+    logger.info("Saved chemical DDI data to %s (%d rows)", OUT_PATH, len(df))
 
     resolved = sum(1 for v in CACHE.values() if v is not None)
-    print(f"Cache stats: {len(CACHE)} unique, {resolved} resolved, {len(CACHE)-resolved} failed")
+    logger.info("Cache stats: %d unique, %d resolved, %d failed", len(CACHE), resolved, len(CACHE) - resolved)
 
 
 if __name__ == "__main__":

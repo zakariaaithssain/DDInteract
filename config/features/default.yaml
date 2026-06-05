@@ -1,0 +1,14 @@
+n_bits: 256
+radius: 2
+n_pca: 50
+descriptors:
+  - MolWt
+  - MolLogP
+  - NumHDonors
+  - NumHAcceptors
+  - TPSA
+  - NumRotatableBonds
+  - NumAromaticRings
+  - NumAliphaticRings
+  - FractionCSP3
+  - NumHeteroatoms

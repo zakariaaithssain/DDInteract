@@ -20,6 +20,9 @@ mlruns/
 models/
 results.json
 
+# Logs
+logs/
+
 # Generated data caches
 data/features.npy
 data/labels.npy
