@@ -25,9 +25,9 @@ from sklearn.metrics import (
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from features import build_features
-from logger import logger
-from models import MODEL_CONFIGS, RANDOM_STATE, get_param_grid
+from src.features import build_features
+from src.logger import logger
+from src.models import MODEL_CONFIGS, RANDOM_STATE, get_param_grid
 
 DATA_PATH = "data/chemical_ddi.csv"
 EXPERIMENT_NAME = "DDI_Structural_Severity"

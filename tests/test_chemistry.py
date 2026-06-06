@@ -1,9 +1,5 @@
 """Tests for RDKit fingerprint generation."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors

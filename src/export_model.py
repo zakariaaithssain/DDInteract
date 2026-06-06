@@ -8,9 +8,9 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from features import build_features
-from logger import logger
-from models import RANDOM_STATE
+from src.features import build_features
+from src.logger import logger
+from src.models import RANDOM_STATE
 
 EXPERIMENT_NAME: str = "DDI_Structural_Severity"
 DATA_PATH: str = "data/chemical_ddi.csv"

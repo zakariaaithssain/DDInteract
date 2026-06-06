@@ -1,14 +1,10 @@
 """Tests for PubChem SMILES resolution."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from fetch_smiles import CACHE, SEVERITY_MAP, get_smiles, main
+from src.fetch_smiles import CACHE, SEVERITY_MAP, get_smiles, main
 
 
 class TestGetSmiles:
@@ -16,14 +12,14 @@ class TestGetSmiles:
         CACHE.clear()
 
     def test_returns_none_when_no_compounds_found(self):
-        with patch("fetch_smiles.pcp.get_compounds", return_value=[]):
+        with patch("src.fetch_smiles.pcp.get_compounds", return_value=[]):
             result = get_smiles("unknown_drug_xyz123")
         assert result == ("unknown_drug_xyz123", None)
 
     def test_returns_smiles_when_compound_found(self):
         mock_compound = MagicMock()
         mock_compound.connectivity_smiles = "CCO"
-        with patch("fetch_smiles.pcp.get_compounds", return_value=[mock_compound]):
+        with patch("src.fetch_smiles.pcp.get_compounds", return_value=[mock_compound]):
             name, smi = get_smiles("Ethanol")
         assert name == "Ethanol"
         assert smi == "CCO"
@@ -32,14 +28,14 @@ class TestGetSmiles:
         CACHE.clear()
         mock_compound = MagicMock()
         mock_compound.connectivity_smiles = "O"
-        with patch("fetch_smiles.pcp.get_compounds", return_value=[mock_compound]):
+        with patch("src.fetch_smiles.pcp.get_compounds", return_value=[mock_compound]):
             get_smiles("Water")
         assert CACHE.get("Water") == "O"
 
     def test_returns_cached_result(self):
         CACHE.clear()
         CACHE["Water"] = "O"
-        with patch("fetch_smiles.pcp.get_compounds") as mock_get:
+        with patch("src.fetch_smiles.pcp.get_compounds") as mock_get:
             name, smi = get_smiles("Water")
         mock_get.assert_not_called()
         assert smi == "O"
@@ -48,7 +44,7 @@ class TestGetSmiles:
         CACHE.clear()
         mock_compound = MagicMock()
         mock_compound.connectivity_smiles = "CCO"
-        with patch("fetch_smiles.pcp.get_compounds", return_value=[mock_compound]):
+        with patch("src.fetch_smiles.pcp.get_compounds", return_value=[mock_compound]):
             name, smi = get_smiles("  Ethanol  ")
         assert name == "Ethanol"
         assert smi == "CCO"
@@ -63,13 +59,13 @@ class TestGetSmiles:
                 return []
             return [mock_compound]
 
-        with patch("fetch_smiles.pcp.get_compounds", side_effect=get_compounds_side_effect) as mock_get:
+        with patch("src.fetch_smiles.pcp.get_compounds", side_effect=get_compounds_side_effect) as mock_get:
             get_smiles("St. John's Wort")
         mock_get.assert_any_call("hypericum perforatum", namespace="name", timeout=15)
 
     def test_handles_exception_during_lookup(self):
         CACHE.clear()
-        with patch("fetch_smiles.pcp.get_compounds", side_effect=Exception("timeout")):
+        with patch("src.fetch_smiles.pcp.get_compounds", side_effect=Exception("timeout")):
             name, smi = get_smiles("SomeDrug")
         assert smi is None
 
@@ -97,9 +93,9 @@ class TestMain:
             return [mock_compound_b]
 
         with (
-            patch("fetch_smiles.pd.read_csv", return_value=mock_raw),
-            patch("fetch_smiles.pcp.get_compounds", side_effect=mock_get_compounds),
-            patch("fetch_smiles.pd.DataFrame.to_csv") as mock_to_csv,
+            patch("src.fetch_smiles.pd.read_csv", return_value=mock_raw),
+            patch("src.fetch_smiles.pcp.get_compounds", side_effect=mock_get_compounds),
+            patch("src.fetch_smiles.pd.DataFrame.to_csv") as mock_to_csv,
         ):
             main()
 
@@ -127,9 +123,9 @@ class TestMain:
             return [mock_compound]
 
         with (
-            patch("fetch_smiles.pd.read_csv", return_value=mock_raw),
-            patch("fetch_smiles.pcp.get_compounds", side_effect=mock_get_compounds),
-            patch("fetch_smiles.pd.DataFrame.to_csv"),
+            patch("src.fetch_smiles.pd.read_csv", return_value=mock_raw),
+            patch("src.fetch_smiles.pcp.get_compounds", side_effect=mock_get_compounds),
+            patch("src.fetch_smiles.pd.DataFrame.to_csv"),
         ):
             main()
 

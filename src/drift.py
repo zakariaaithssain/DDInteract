@@ -4,7 +4,7 @@ from typing import Any
 import numpy as np
 from scipy.stats import ks_2samp
 
-from logger import logger
+from src.logger import logger
 
 DRIFT_REPORT: str = "drift_report.json"
 CLASS_NAMES: list[str] = ["Minor", "Moderate", "Major"]

@@ -1,15 +1,11 @@
 """Tests for data drift detection."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 import json
 from pathlib import Path
 
 import numpy as np
 
-from drift import (
+from src.drift import (
     DRIFT_REPORT,
     compute_reference_stats,
     detect_drift,

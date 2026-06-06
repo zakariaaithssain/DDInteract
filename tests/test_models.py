@@ -1,9 +1,5 @@
 """Tests for model definitions and hyperparameter grids."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 import pytest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -11,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
 from xgboost import XGBClassifier
 
-from models import MODEL_CONFIGS, expand_grid, get_param_grid
+from src.models import MODEL_CONFIGS, expand_grid, get_param_grid
 
 
 class TestExpandGrid:

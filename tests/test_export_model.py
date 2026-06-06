@@ -1,9 +1,5 @@
 """Tests for model export."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -27,16 +23,16 @@ class TestExportMain:
 
         mock_model = MagicMock()
         with (
-            patch("export_model.mlflow.set_experiment"),
-            patch("export_model.mlflow.search_runs", return_value=mock_runs),
-            patch("export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("export_model.Path.exists", return_value=True),
-            patch("export_model.np.load", return_value=np.zeros((100, 1045))),
-            patch("export_model.joblib.dump"),
-            patch("export_model.Path.mkdir"),
-            patch("export_model.logger"),
+            patch("src.export_model.mlflow.set_experiment"),
+            patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
+            patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
+            patch("src.export_model.Path.exists", return_value=True),
+            patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.joblib.dump"),
+            patch("src.export_model.Path.mkdir"),
+            patch("src.export_model.logger"),
         ):
-            from export_model import main
+            from src.export_model import main
 
             main()
 
@@ -51,14 +47,14 @@ class TestExportMain:
 
         mock_model = MagicMock()
         with (
-            patch("export_model.mlflow.set_experiment"),
-            patch("export_model.mlflow.search_runs", return_value=mock_runs),
-            patch("export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("export_model.Path.exists", return_value=False),
-            patch("export_model.pd.read_csv"),
-            patch("export_model.build_features", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.mlflow.set_experiment"),
+            patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
+            patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
+            patch("src.export_model.Path.exists", return_value=False),
+            patch("src.export_model.pd.read_csv"),
+            patch("src.export_model.build_features", return_value=np.zeros((100, 1045))),
             patch(
-                "export_model.train_test_split",
+                "src.export_model.train_test_split",
                 return_value=(
                     np.zeros((80, 1045)),
                     np.zeros((20, 1045)),
@@ -66,16 +62,16 @@ class TestExportMain:
                     np.zeros(20),
                 ),
             ),
-            patch("export_model.StandardScaler") as mock_scaler_cls,
-            patch("export_model.PCA") as mock_pca_cls,
-            patch("export_model.joblib.dump"),
-            patch("export_model.Path.mkdir"),
-            patch("export_model.logger"),
+            patch("src.export_model.StandardScaler") as mock_scaler_cls,
+            patch("src.export_model.PCA") as mock_pca_cls,
+            patch("src.export_model.joblib.dump"),
+            patch("src.export_model.Path.mkdir"),
+            patch("src.export_model.logger"),
         ):
             mock_scaler_cls.return_value.fit.return_value = None
             mock_scaler_cls.return_value.transform.return_value = np.zeros((80, 1045))
             mock_pca_cls.return_value.fit.return_value = None
-            from export_model import main
+            from src.export_model import main
 
             main()
 
@@ -90,16 +86,16 @@ class TestExportMain:
 
         mock_model = MagicMock()
         with (
-            patch("export_model.mlflow.set_experiment"),
-            patch("export_model.mlflow.search_runs", return_value=mock_runs),
-            patch("export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("export_model.Path.exists", return_value=True),
-            patch("export_model.np.load", return_value=np.zeros((100, 1045))),
-            patch("export_model.joblib.dump") as mock_dump,
-            patch("export_model.Path.mkdir"),
-            patch("export_model.logger"),
+            patch("src.export_model.mlflow.set_experiment"),
+            patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
+            patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
+            patch("src.export_model.Path.exists", return_value=True),
+            patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.joblib.dump") as mock_dump,
+            patch("src.export_model.Path.mkdir"),
+            patch("src.export_model.logger"),
         ):
-            from export_model import main
+            from src.export_model import main
 
             main()
 
@@ -115,11 +111,11 @@ class TestExportMain:
         )
 
         with (
-            patch("export_model.mlflow.set_experiment"),
-            patch("export_model.mlflow.search_runs", return_value=mock_runs),
-            patch("export_model.logger"),
+            patch("src.export_model.mlflow.set_experiment"),
+            patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
+            patch("src.export_model.logger"),
         ):
-            from export_model import main
+            from src.export_model import main
 
             with pytest.raises(ValueError):
                 main()

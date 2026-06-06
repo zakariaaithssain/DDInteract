@@ -1,7 +1,3 @@
-import sys
-
-sys.path.insert(0, "src")
-
 import joblib
 import numpy as np
 import pandas as pd
@@ -13,8 +9,8 @@ from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from features import build_features
-from logger import logger
+from src.features import build_features
+from src.logger import logger
 
 CLASS_NAMES: list[str] = ["Minor", "Moderate", "Major"]
 

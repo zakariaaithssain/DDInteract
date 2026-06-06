@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import pubchempy as pcp
 
-from logger import logger
+from src.logger import logger
 
 RAW_PATH: str = "data/raw_ddi.csv"
 OUT_PATH: str = "data/chemical_ddi.csv"

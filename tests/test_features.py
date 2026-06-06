@@ -1,14 +1,10 @@
 """Tests for feature engineering functions."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 import numpy as np
 import pandas as pd
 from rdkit import Chem
 
-from features import N_BITS, build_features, mol_to_props
+from src.features import N_BITS, build_features, mol_to_props
 
 
 def _n_props() -> int:

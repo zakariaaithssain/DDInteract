@@ -1,14 +1,10 @@
 """Tests for feature engineering output dimensions."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 import numpy as np
 import pandas as pd
 from rdkit import Chem
 
-from features import N_BITS, mol_to_fingerprint, mol_to_props, tanimoto_similarity
+from src.features import N_BITS, mol_to_fingerprint, mol_to_props, tanimoto_similarity
 
 
 def test_interaction_feature_dimensions() -> None:

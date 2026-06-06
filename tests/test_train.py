@@ -1,9 +1,5 @@
 """Tests for training pipeline functions."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -11,7 +7,7 @@ import pandas as pd
 import pytest
 from sklearn.linear_model import LogisticRegression
 
-from train import (
+from src.train import (
     REGISTRY_NAME,
     evaluate_and_log,
     load_or_build_features,
@@ -58,21 +54,21 @@ class TestEvaluateAndLog:
 
     def test_returns_expected_keys(self, model_and_data):
         model, X, y = model_and_data
-        with patch("train.mlflow"):
+        with patch("src.train.mlflow"):
             result = evaluate_and_log(model, X, y, "test_run", {"C": 1.0})
         expected_keys = {"accuracy", "macro_f1", "weighted_f1", "kappa", "mae"}
         assert set(result.keys()) == expected_keys
 
     def test_returns_float_values(self, model_and_data):
         model, X, y = model_and_data
-        with patch("train.mlflow"):
+        with patch("src.train.mlflow"):
             result = evaluate_and_log(model, X, y, "test_run", {"C": 1.0})
         for v in result.values():
             assert isinstance(v, float)
 
     def test_calls_mlflow_log_metrics(self, model_and_data):
         model, X, y = model_and_data
-        with patch("train.mlflow") as mock_mlflow:
+        with patch("src.train.mlflow") as mock_mlflow:
             evaluate_and_log(model, X, y, "test_run", {"C": 1.0})
         assert mock_mlflow.log_metrics.called
 
@@ -81,10 +77,10 @@ class TestLogConfusionMatrix:
     def test_creates_plot_and_logs(self):
         cm = np.array([[10, 2, 0], [1, 15, 3], [0, 2, 20]])
         with (
-            patch("train.plt") as mock_plt,
-            patch("train.mlflow") as mock_mlflow,
-            patch("train.os.unlink"),
-            patch("train.tempfile.NamedTemporaryFile") as mock_temp,
+            patch("src.train.plt") as mock_plt,
+            patch("src.train.mlflow") as mock_mlflow,
+            patch("src.train.os.unlink"),
+            patch("src.train.tempfile.NamedTemporaryFile") as mock_temp,
         ):
             mock_fig = MagicMock()
             mock_ax = MagicMock()
@@ -107,9 +103,9 @@ class TestLoadOrBuildFeatures:
             }
         )
         with (
-            patch("train.Path.exists", return_value=False),
-            patch("train.np.save"),
-            patch("train.build_features") as mock_build,
+            patch("src.train.Path.exists", return_value=False),
+            patch("src.train.np.save"),
+            patch("src.train.build_features") as mock_build,
         ):
             mock_build.return_value = np.zeros((1, 1045), dtype=np.float64)
             X, y = load_or_build_features(df)
@@ -128,8 +124,8 @@ class TestLoadOrBuildFeatures:
         X_cached = np.zeros((1, 1045), dtype=np.float64)
         y_cached = np.array([1])
         with (
-            patch("train.Path.exists", return_value=True),
-            patch("train.np.load", side_effect=[X_cached, y_cached]),
+            patch("src.train.Path.exists", return_value=True),
+            patch("src.train.np.load", side_effect=[X_cached, y_cached]),
         ):
             X, y = load_or_build_features(df)
         assert np.array_equal(X, X_cached)
@@ -146,10 +142,10 @@ class TestLoadOrBuildFeatures:
         X_cached = np.zeros((1, 1045), dtype=np.float64)
         y_cached = np.array([1])
         with (
-            patch("train.Path.exists", return_value=True),
-            patch("train.np.load", side_effect=[X_cached, y_cached]),
-            patch("train.np.save"),
-            patch("train.build_features") as mock_build,
+            patch("src.train.Path.exists", return_value=True),
+            patch("src.train.np.load", side_effect=[X_cached, y_cached]),
+            patch("src.train.np.save"),
+            patch("src.train.build_features") as mock_build,
         ):
             mock_build.return_value = np.zeros((2, 1045), dtype=np.float64)
             X, y = load_or_build_features(df)
@@ -331,8 +327,8 @@ class TestMain:
 class TestRegisterBestModel:
     def test_calls_mlflow_register(self):
         with (
-            patch("train.mlflow.register_model") as mock_register,
-            patch("train.mlflow.MlflowClient") as mock_client,
+            patch("src.train.mlflow.register_model") as mock_register,
+            patch("src.train.mlflow.MlflowClient") as mock_client,
         ):
             mock_version = MagicMock()
             mock_version.version = "42"
@@ -343,8 +339,8 @@ class TestRegisterBestModel:
 
     def test_logs_warning_on_failure(self):
         with (
-            patch("train.mlflow.register_model", side_effect=Exception("fail")),
-            patch("train.logger") as mock_logger,
+            patch("src.train.mlflow.register_model", side_effect=Exception("fail")),
+            patch("src.train.logger") as mock_logger,
         ):
             register_best_model("run_123", "LR", 0.85)
         mock_logger.warning.assert_called_once()

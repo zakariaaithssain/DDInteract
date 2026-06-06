@@ -1,9 +1,5 @@
 """Tests for the FastAPI prediction API."""
 
-import sys
-
-sys.path.insert(0, "src")
-
 from unittest.mock import patch
 
 import numpy as np
@@ -13,7 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
-from models import RANDOM_STATE
+from src.models import RANDOM_STATE
 
 
 def _build_dummy_artifacts():
@@ -32,8 +28,8 @@ def _build_dummy_artifacts():
 @pytest.fixture(scope="module")
 def client():
     scaler, pca, model = _build_dummy_artifacts()
-    with patch("joblib.load", side_effect=[model, scaler, pca]):
-        import api
+    with patch("src.api.joblib.load", side_effect=[model, scaler, pca]):
+        from src import api
 
         with TestClient(api.app) as c:
             yield c
