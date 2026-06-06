@@ -43,4 +43,10 @@ Thumbs.db
 *.swo
 
 # DVC
-.dvc/
+.dvc/tmp
+.dvc/cache
+
+#tests-cov
+drift_report.json 
+.coverage
+
