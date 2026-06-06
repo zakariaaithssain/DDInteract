@@ -158,6 +158,8 @@ class TestLoadOrBuildFeatures:
 
 class TestMain:
     def test_main_runs_pipeline(self):
+        import src.train
+
         mock_df = pd.DataFrame(
             {
                 "smiles_a": ["O", "CCO"],
@@ -173,12 +175,15 @@ class TestMain:
             return mock_model_obj
 
         with (
-            patch("train.os.makedirs"),
-            patch("train.mlflow.set_experiment"),
-            patch("train.pd.read_csv", return_value=mock_df),
-            patch("train.load_or_build_features", return_value=(np.zeros((2, 1045)), np.array([0, 1]))),
-            patch(
-                "train.train_test_split",
+            patch("src.train.os.makedirs"),
+            patch("src.train.mlflow.set_experiment"),
+            patch("src.train.pd.read_csv", return_value=mock_df),
+            patch("src.train.load_or_build_features", return_value=(np.zeros((2, 1045)), np.array([0, 1]))),
+            patch.object(src.train, "StandardScaler") as mock_scaler_cls,
+            patch.object(src.train, "PCA") as mock_pca_cls,
+            patch.object(
+                src.train,
+                "train_test_split",
                 return_value=(
                     np.zeros((1, 1045)),
                     np.zeros((1, 1045)),
@@ -186,12 +191,10 @@ class TestMain:
                     np.array([1]),
                 ),
             ),
-            patch("train.StandardScaler") as mock_scaler_cls,
-            patch("train.PCA") as mock_pca_cls,
-            patch("train.joblib.dump"),
-            patch("train.cross_val_score", return_value=np.array([0.8, 0.9, 0.85])),
+            patch("src.train.joblib.dump"),
+            patch("src.train.cross_val_score", return_value=np.array([0.8, 0.9, 0.85])),
             patch(
-                "train.evaluate_and_log",
+                "src.train.evaluate_and_log",
                 return_value={
                     "accuracy": 0.9,
                     "macro_f1": 0.85,
@@ -200,16 +203,17 @@ class TestMain:
                     "mae": 0.2,
                 },
             ),
-            patch("train.mlflow.models.infer_signature"),
-            patch("train.mlflow.start_run") as mock_start_run,
-            patch("train.mlflow.log_artifact"),
-            patch("train.mlflow.sklearn.autolog"),
-            patch("train.mlflow.sklearn.log_model"),
-            patch("train.mlflow.register_model", side_effect=Exception("no registry")),
-            patch("train.logger"),
-            patch("train.json.dump"),
-            patch(
-                "train.MODEL_CONFIGS",
+            patch("src.train.mlflow.models.infer_signature"),
+            patch("src.train.mlflow.start_run") as mock_start_run,
+            patch("src.train.mlflow.log_artifact"),
+            patch("src.train.mlflow.sklearn.autolog"),
+            patch("src.train.mlflow.sklearn.log_model"),
+            patch("src.train.mlflow.register_model", side_effect=Exception("no registry")),
+            patch("src.train.logger"),
+            patch("src.train.json.dump"),
+            patch.object(
+                src.train,
+                "MODEL_CONFIGS",
                 {
                     "LogisticRegression": {
                         "model": model_constructor,
@@ -218,7 +222,7 @@ class TestMain:
                     },
                 },
             ),
-            patch("train.get_param_grid", return_value=[{"C": 1.0}]),
+            patch.object(src.train, "get_param_grid", return_value=[{"C": 1.0}]),
         ):
             mock_scaler = MagicMock()
             mock_scaler_cls.return_value = mock_scaler
@@ -235,11 +239,11 @@ class TestMain:
             mock_run.info.run_id = "test_run_123"
             mock_start_run.return_value.__enter__.return_value = mock_run
 
-            from train import main
-
-            main()
+            src.train.main()
 
     def test_main_saves_results_json(self):
+        import src.train
+
         mock_df = pd.DataFrame(
             {
                 "smiles_a": ["O"],
@@ -255,12 +259,13 @@ class TestMain:
             return mock_model_obj
 
         with (
-            patch("train.os.makedirs"),
-            patch("train.mlflow.set_experiment"),
-            patch("train.pd.read_csv", return_value=mock_df),
-            patch("train.load_or_build_features", return_value=(np.zeros((1, 1045)), np.array([0]))),
-            patch(
-                "train.train_test_split",
+            patch("src.train.os.makedirs"),
+            patch("src.train.mlflow.set_experiment"),
+            patch("src.train.pd.read_csv", return_value=mock_df),
+            patch("src.train.load_or_build_features", return_value=(np.zeros((1, 1045)), np.array([0]))),
+            patch.object(
+                src.train,
+                "train_test_split",
                 return_value=(
                     np.zeros((1, 1045)),
                     np.zeros((1, 1045)),
@@ -268,12 +273,12 @@ class TestMain:
                     np.array([0]),
                 ),
             ),
-            patch("train.StandardScaler") as mock_scaler_cls,
-            patch("train.PCA") as mock_pca_cls,
-            patch("train.joblib.dump"),
-            patch("train.cross_val_score", return_value=np.array([0.9])),
+            patch.object(src.train, "StandardScaler") as mock_scaler_cls,
+            patch.object(src.train, "PCA") as mock_pca_cls,
+            patch("src.train.joblib.dump"),
+            patch("src.train.cross_val_score", return_value=np.array([0.9])),
             patch(
-                "train.evaluate_and_log",
+                "src.train.evaluate_and_log",
                 return_value={
                     "accuracy": 0.9,
                     "macro_f1": 0.85,
@@ -282,16 +287,17 @@ class TestMain:
                     "mae": 0.2,
                 },
             ),
-            patch("train.mlflow.models.infer_signature"),
-            patch("train.mlflow.start_run") as mock_start_run,
-            patch("train.mlflow.log_artifact"),
-            patch("train.mlflow.sklearn.autolog"),
-            patch("train.mlflow.sklearn.log_model"),
-            patch("train.mlflow.register_model", side_effect=Exception("no registry")),
-            patch("train.logger"),
-            patch("train.json.dump") as mock_json_dump,
-            patch(
-                "train.MODEL_CONFIGS",
+            patch("src.train.mlflow.models.infer_signature"),
+            patch("src.train.mlflow.start_run") as mock_start_run,
+            patch("src.train.mlflow.log_artifact"),
+            patch("src.train.mlflow.sklearn.autolog"),
+            patch("src.train.mlflow.sklearn.log_model"),
+            patch("src.train.mlflow.register_model", side_effect=Exception("no registry")),
+            patch("src.train.logger"),
+            patch("src.train.json.dump") as mock_json_dump,
+            patch.object(
+                src.train,
+                "MODEL_CONFIGS",
                 {
                     "LogisticRegression": {
                         "model": model_constructor,
@@ -300,7 +306,7 @@ class TestMain:
                     },
                 },
             ),
-            patch("train.get_param_grid", return_value=[{"C": 1.0}]),
+            patch.object(src.train, "get_param_grid", return_value=[{"C": 1.0}]),
         ):
             mock_scaler = MagicMock()
             mock_scaler_cls.return_value = mock_scaler
@@ -317,9 +323,7 @@ class TestMain:
             mock_run.info.run_id = "test_run_123"
             mock_start_run.return_value.__enter__.return_value = mock_run
 
-            from train import main
-
-            main()
+            src.train.main()
 
         mock_json_dump.assert_called_once()
 
