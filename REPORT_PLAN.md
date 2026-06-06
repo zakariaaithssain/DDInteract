@@ -9,14 +9,14 @@
 - **Source**: DDInter 2.0 (109K drug pairs, 3 severity classes)
 - **SMILES resolution**: PubChem API lookup with fallback names (concurrent, 5 workers)
 - **Train/validation split**: 80/20 stratified by severity
-- **DVC**: Data versioning and pipeline reproducibility
+- **DVC**: Data versioning, pipeline reproducibility, local remote
 
 ## 3. Feature Engineering
 - **Molecular fingerprints**: 256-bit Morgan fingerprints (radius=2)
 - **Interaction features**: fingerprint diff, product, Tanimoto similarity
 - **Molecular descriptors**: MolWt, LogP, TPSA, HBA/HBD, rotatable bonds, ring counts, CSP3 fraction, heteroatom count
 - **Dimensionality reduction**: PCA (50 components, ~95% variance)
-- **Feature cache**: numpy cache to skip 8-min RDKit rebuild on re-run
+- **Feature cache**: numpy cache to skip RDKit rebuild on re-run
 
 ## 4. Modeling
 - **Models**: LogisticRegression, LinearSVC, RandomForest, KNN, XGBoost
@@ -40,12 +40,12 @@
 - **Export pipeline**: best model + fitted scaler + PCA → joblib files
 - **API**: FastAPI with `/predict` endpoint (SMILES → severity + probabilities)
 - **Frontend**: Minimal HTML/JS interface
-- **Containerization**: Docker with python:3.14-slim
+- **Containerization**: Docker with python:3.14-slim, uv-based
 
 ## 8. CI/CD
-- **GitHub Actions**: 3 jobs (lint → test → train + validate)
-- **Quality gates**: ruff linting, pytest, macro-F1 ≥ 0.76 threshold
-- **DVC repro**: full pipeline reproducibility in CI
+- **GitHub Actions**: 2 jobs (lint → test)
+- **Quality gates**: ruff lint/format, mypy typecheck, pytest (77 tests, 98% coverage)
+- **Pre-commit hooks**: ruff check (--fix), ruff format, mypy, pytest
 
 ## 9. Monitoring
 - **Data drift**: KS test on fingerprint density distribution
@@ -53,10 +53,11 @@
 - **Drift report**: JSON output with KS statistic and p-value
 
 ## 10. Infrastructure & Best Practices
+- **uv** for dependency management (instead of pip)
 - **Pre-commit hooks**: ruff format/lint, mypy, pytest
 - **Makefile**: standardized commands
 - **Configuration management**: Hydra YAML configs
-- **Dependencies**: pyproject.toml + requirements.txt
+- **Dependencies**: pyproject.toml (uv.lock locked)
 
 ## 11. Results & Discussion
 - Best model performance (macro-F1, per-class breakdown)

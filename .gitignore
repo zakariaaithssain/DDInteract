@@ -46,8 +46,7 @@ Thumbs.db
 .dvc/tmp
 .dvc/cache
 
-#tests-cov
-drift_report.json 
+# Coverage
+drift_report.json
 .coverage
-results.json
 

@@ -1,176 +1,183 @@
-# End-to-End MLOps for Drug-Drug Interaction Prediction
+# DDI Severity Predictor — MLOps Pipeline
 
-## 1. Project Title & Summary
-
-**Title:** *PharmaGraph: A Production-Ready MLOps Pipeline for Predicting Adverse Drug-Drug Interactions via Knowledge Graph Neural Networks*
-
-**Summary:** build a system that predicts the severity of interactions between drug pairs using a Graph Neural Network (GNN) trained on biomedical knowledge graphs. The core deliverable is not just the model, but a reproducible MLOps pipeline that automates data versioning, experiment tracking, model deployment, and performance monitoring—with explicit handling of cold-start drugs that enter the market after training.
+Predict drug-drug interaction severity (Minor / Moderate / Major) from chemical structure (SMILES → Morgan fingerprints).
 
 ---
 
-## 2. Problem Statement
-
-**Clinical Context:** When a patient takes multiple medications, unexpected interactions can alter efficacy or trigger adverse events. Existing rule-based databases (e.g., DrugBank) are manually curated and struggle to keep pace with new approvals.
-
-**Technical Challenge:** a **link prediction** problem on a heterogeneous knowledge graph. Nodes include drugs, proteins, diseases, and side-effects. Edges represent relationships (treats, targets, causes, interacts-with). Given a pair of drugs, the model predicts the probability and severity of an adverse interaction.
-
-**MLOps Angle:** New drugs, targets, and clinical evidence arrive continuously. A static model degrades. the pipeline must detect this degradation and trigger retraining.
-
----
-
-## 3. Technical Architecture
-
-### Model: Knowledge Graph Neural Network (KGNN)
-- **Embedding Layer:** Initialize drug nodes using molecular fingerprints (Morgan/ECFP) or pre-trained bio-encoders (e.g., MolBERT).
-- **Message Passing:** Use a Relational Graph Convolutional Network (R-GCN) or GraphSAGE to propagate information across the knowledge graph.
-- **Decoder:** A DistMult or RotatE scoring function takes the embeddings of two drug nodes and predicts interaction type (e.g., 0: None, 1: Minor, 2: Moderate, 3: Major, 4: Contraindicated).
-- **Loss:** Cross-entropy with class weights to handle severe imbalance.
-
-### Cold-Start Handling
-For drugs unseen during training, the pipeline falls back to molecular structure embeddings, ensuring the model is never completely blind to new entities.
-
----
-
-## 4. The MLOps Pipeline (End-to-End)
-
-### Stage A: Data Engineering & Versioning
-1. **Ingestion:** Download DrugBank, BioSNAP, and TWOSIDES snapshots.
-2. **Graph Construction:** Build a heterogeneous graph (Neo4j or NetworkX → PyTorch Geometric ).
-3. **Negative Sampling:** Generate non-interacting drug pairs. Use a time-aware split to prevent leakage.
-4. **Versioning:** Snapshot the processed graph with DVC. Git tracks code; DVC tracks the  and  artifacts.
-
-### Stage B: Experimentation & Training
-1. **Feature Store:** Store pre-computed molecular embeddings and node features in a local feature registry (Feast or a simple Parquet store).
-2. **Experiment Tracking:** Every training run logs hyperparameters, graph statistics, and metrics (AUROC, AUPRC, F1 per class) to MLflow.
-3. **Hyperparameter Search:** Run Optuna to optimize learning rate, embedding dimension, number of GNN layers, and negative sampling ratio.
-4. **Artifact Storage:** Best models are logged to the MLflow Model Registry with tags (, ).
-
-### Stage C: Continuous Integration
-1. **Data Validation:** On every commit, run Great Expectations to assert that the knowledge graph has the expected schema, no isolated drug nodes, and valid SMILES strings.
-2. **Model Testing:** A CI job (GitHub Actions) trains a smoke test model for 1 epoch on a tiny subgraph to catch code regressions.
-3. **Containerization:** Dockerfile builds a reproducible training environment.
-
-### Stage D: Deployment & Serving
-1. **Model Packaging:** Export the production model to TorchScript or ONNX for faster inference.
-2. **API:** FastAPI service exposes two endpoints:
-   -  → Accepts two DrugBank IDs, returns interaction probability and severity.
-   -  → Returns model version and last training timestamp.
-3. **Container Orchestration:** Docker Compose runs the API, a Redis cache for frequent queries, and a monitoring sidecar.
-
-### Stage E: Monitoring & Observability
-1. **Data Drift:** Weekly job compares the distribution of new drug approvals (molecular weight, target classes) against the training set using Kolmogorov-Smirnov tests. If drift exceeds a threshold, alert.
-2. **Performance Drift:** Track prediction confidence histograms. A sudden drop in mean confidence for new drug pairs signals potential decay.
-3. **Concept Drift:** Compare model predictions against newly published interaction evidence (e.g., from PubMed abstracts mined monthly). If disagreement rate rises, trigger retraining.
-4. **Dashboard:** A Streamlit or Grafana dashboard visualizes:
-   - Daily prediction volume
-   - Drift metrics over time
-   - Top-k most uncertain drug pairs for human review
-
-### Stage F: Automated Retraining
-1. **Trigger:** A Prefect/Airflow DAG runs monthly. It checks drift monitors and new data availability.
-2. **Pipeline Execution:** If triggered, the DAG pulls the latest data, runs the training pipeline, evaluates against a holdout set of recent interactions, and promotes the new model to staging.
-3. **Human-in-the-Loop:** Promotion to production requires a manual approval step in MLflow (simulating clinical governance).
-
----
-
-## 5. Tech Stack
+## Tech Stack
 
 | Layer | Tool | Purpose |
 |-------|------|---------|
-| **Language** | Python 3.10+ | Core development |
-| **ML/DL** | PyTorch, PyTorch Geometric | GNN implementation |
-| **Data** | Pandas, NetworkX, Neo4j (optional) | Graph construction & querying |
-| **Data Versioning** | DVC | Version control for datasets & models |
-| **Experiment Tracking** | MLflow | Log metrics, params, artifacts |
-| **Orchestration** | Prefect 2.x (or Apache Airflow) | Pipeline DAGs & scheduling |
-| **Feature Store** | Feast (lightweight local mode) | Centralized feature serving |
-| **Data Quality** | Great Expectations | Schema & distribution validation |
+| **Language** | Python 3.14 | Core development |
+| **ML** | scikit-learn, XGBoost | Classification (5 model families) |
+| **Chemistry** | RDKit | Morgan fingerprints, molecular descriptors |
+| **Data** | Pandas, NumPy | Data processing |
+| **Dependency mgmt** | uv | Fast, deterministic dependency resolution |
+| **Data Versioning** | DVC | Pipeline reproducibility & data versioning |
+| **Experiment Tracking** | MLflow | Log metrics, params, artifacts, model registry |
+| **Testing** | pytest, pytest-cov | Unit tests + coverage (98%) |
+| **Linting** | ruff | Lint + format (line length 120, py314 target) |
+| **Type Checking** | mypy | Static type checking with per-module overrides |
+| **Pre-commit** | ruff, mypy, pytest | Quality gates before every commit |
+| **CI/CD** | GitHub Actions | Lint → format-check → mypy → pytest on push |
 | **Serving** | FastAPI, Uvicorn | REST API for predictions |
-| **Containerization** | Docker, Docker Compose | Environment reproducibility |
-| **CI/CD** | GitHub Actions | Automated testing & builds |
-| **Monitoring** | Evidently AI, custom scripts | Drift detection |
-| **Dashboard** | Streamlit | Visualization layer |
-| **Storage** | MinIO (S3-compatible) or local filesystem | Artifact store for DVC/MLflow |
+| **Containerization** | Docker (uv-based, slim image) | Reproducible deployment |
+| **Monitoring** | Drift detection (KS test) | Data drift on fingerprint density |
+| **Config** | Hydra | YAML-based experiment configuration |
 
 ---
 
-## 6. Recommended Project Structure
+## Pipeline
+
+```
+data/chemical_ddi.csv  (109K pairs, DDInter 2.0)
+        │
+        ▼
+src/train.py
+  ├── src/features.py   (RDKit → 1045-dim features)
+  ├── src/models.py     (LR, SVC, RF, KNN, XGBoost × 3 configs)
+  ├── caching           (data/features.npy — skips RDKit rebuild)
+  └── MLflow            (per-class metrics, macro-F1, Kappa, MAE, CM plots)
+        │
+        ├── Model Registry  →  "DDI-Severity" (production alias)
+        │
+        ▼
+src/export_model.py  →  models/model.joblib + scaler + PCA
+        │
+        ▼
+src/api.py           →  FastAPI :8000  (+ static/index.html frontend)
+        │
+        ▼
+src/drift.py         →  KS test on fingerprint density
+```
+
+---
+
+## Getting Started
 
 ```bash
+git clone <repo>
+make install      # installs uv + uv sync
+make hooks        # enable pre-commit hooks
+make train        # train 5 models × 3 configs, log to MLflow
+make test         # run pytest (77 tests, 98% coverage)
+make export       # export best model + scaler + PCA to models/
+make api          # start FastAPI at localhost:8000
+```
 
-pharmagraph-mlops/
-├── .github/
-│   └── workflows/
-│       ├── ci.yml              # Lint, test, smoke-train
-│       └── drift-check.yml     # Weekly drift detection
+---
+
+## Commands
+
+| What | Command |
+|------|---------|
+| Install deps | `make install` |
+| Enable pre-commit | `make hooks` |
+| Train all models | `make train` or `python src/train.py` |
+| Run tests | `make test` or `pytest -v tests/` |
+| Lint | `make lint` or `ruff check src/ tests/` |
+| Format | `make format` or `ruff format src/ tests/` |
+| Type check | `make typecheck` or `mypy src/` |
+| Export best model | `make export` or `python src/export_model.py` |
+| Start API | `make api` or `uvicorn src.api:app` |
+| DVC repro | `make dvc-repro` or `dvc repro` |
+| Clean artifacts | `make clean` |
+| MLflow UI | `mlflow ui` |
+
+---
+
+## Project Structure
+
+```
+├── .github/workflows/ci-cd.yaml   — GitHub Actions (lint → typecheck → test)
+├── config/
+│   └── config.yaml                 — Hydra experiment config
 ├── data/
-│   ├── raw/                    # DrugBank, TWOSIDES (gitignored, DVC tracked)
-│   ├── processed/              # HeteroData objects (DVC tracked)
-│   └── expectations/           # Great Expectations suites
+│   ├── chemical_ddi.csv            — 109K drug pairs (DVC input)
+│   ├── features.npy                — Cached feature matrix (gitignored)
+│   └── labels.npy                  — Cached labels (gitignored)
+├── models/                         — Exported joblib artifacts (gitignored)
 ├── src/
-│   ├── data/
-│   │   ├── build_graph.py
-│   │   ├── negative_sampling.py
-│   │   └── validation.py
-│   ├── models/
-│   │   ├── rgcn.py
-│   │   ├── decoder.py
-│   │   └── train.py
-│   ├── features/
-│   │   └── molecular_embeddings.py
-│   ├── pipeline/
-│   │   ├── train_pipeline.py   # Prefect flow
-│   │   └── deploy_pipeline.py
-│   ├── api/
-│   │   ├── main.py
-│   │   └── schemas.py
-│   └── monitoring/
-│       ├── drift_detector.py
-│       └── evidently_reports.py
-├── notebooks/
-│   └── eda.ipynb
+│   ├── api.py                      — FastAPI inference server
+│   ├── chemistry.py                — RDKit fingerprint generation
+│   ├── drift.py                    — Data drift detection (KS test)
+│   ├── export_model.py             — Best model export pipeline
+│   ├── features.py                 — Feature engineering (1045-dim)
+│   ├── fetch_smiles.py             — PubChem SMILES resolution
+│   ├── logger.py                   — Structured logging to console + file
+│   ├── models.py                   — Model defs + hyperparameter grids
+│   ├── train.py                    — Main training pipeline
+│   └── static/index.html           — Vanilla JS frontend
 ├── tests/
-│   ├── unit/
-│   └── integration/
-├── docker/
-│   ├── Dockerfile.api
-│   └── Dockerfile.train
-├── docker-compose.yml
-├── dvc.yaml                    # DVC pipeline definition
-├── params.yaml                 # Hyperparameters & config
+│   ├── test_api.py                 — FastAPI endpoint tests
+│   ├── test_chemistry.py           — RDKit fingerprint tests
+│   ├── test_drift.py               — Drift detection tests
+│   ├── test_export_model.py        — Export pipeline tests
+│   ├── test_features.py            — Feature engineering tests
+│   ├── test_fetch_smiles.py        — PubChem resolution tests
+│   ├── test_logger.py              — Logging tests
+│   ├── test_model.py               — Model dimension tests
+│   ├── test_models.py              — Model config tests
+│   └── test_train.py               — Training pipeline tests (15 tests)
+├── .pre-commit-config.yaml         — ruff lint/fix, ruff-format, mypy, pytest
+├── .gitignore                      — Caches, venv, MLflow, DVC artifacts
+├── dvc.yaml                        — DVC pipeline (train stage)
+├── Makefile                        — Standardized commands
+├── pyproject.toml                  — Project metadata + tool config
+├── Dockerfile                      — uv-based slim image for serving
 └── README.md
 ```
 
 ---
 
-## 7. Evaluation Strategy
+## MLOps Features
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| **DVC pipeline** | ✅ | `dvc.yaml` with training stage, local remote at `dvc_storage` |
+| **MLflow tracking** | ✅ | Per-class metrics, macro-F1, Kappa, MAE, confusion matrix plots |
+| **MLflow Model Registry** | ✅ | Best model registered as `DDI-Severity`, promoted to `production` |
+| **Hyperparameter search** | ✅ | Grid search over 3 configs × 5 model families (15 runs) |
+| **Feature caching** | ✅ | `data/features.npy` — avoids RDKit rebuild on re-run |
+| **Model export** | ✅ | `make export` — dumps model + scaler + PCA as joblib |
+| **FastAPI serving** | ✅ | `make api` — inference with probability output |
+| **Frontend** | ✅ | Minimal vanilla JS UI at `/` |
+| **Structured logging** | ✅ | `src/logger.py` — console + rotating file handler |
+| **Pre-commit hooks** | ✅ | `ruff check --fix`, `ruff format`, `mypy`, `pytest` |
+| **CI/CD** | ✅ | GitHub Actions: lint → format-check → mypy → pytest |
+| **Docker** | ✅ | `python:3.14-slim` with `uv sync --no-dev --frozen` |
+| **Data drift monitoring** | ✅ | `src/drift.py` — KS test on fingerprint density |
+| **Type checking** | ✅ | `mypy src/` — all modules clean |
+| **Coverage** | ✅ | 98% (77 tests) |
+
+---
+
+## Metrics Tracked (per run)
+
+- **Per-class**: Precision, Recall, F1 (Minor / Moderate / Major)
+- **Aggregate**: Macro-F1, Weighted-F1, Accuracy
+- **Ordinal**: Cohen's Kappa, MAE
+- **CV**: 3-fold mean + std
+- **Artifacts**: Confusion matrix PNG, model pickle
+
+---
+
+## Evaluation Strategy
 
 | Metric | Why |
 |--------|-----|
-| **Macro-F1 / Weighted-F1** | Class imbalance makes accuracy misleading |
-| **AUPRC (PR-AUC)** | More informative than AUROC for rare positive interactions |
-| **Hits@K** | Standard for knowledge graph link prediction |
-| **Per-Class Recall** | Ensure we are not missing Contraindicated interactions |
-
-**Validation Scheme:** Split by *time* and by *drug*. Hold out all interactions involving drugs approved after 2022 as the true generalization test.
+| **Macro-F1** | Primary target — treats all classes equally despite imbalance |
+| **Weighted-F1** | Reflects overall performance weighted by class support |
+| **Cohen's Kappa** | Agreement beyond chance; adjusts for class imbalance |
+| **MAE** | Ordinal error: predicting Major when truth is Moderate (error=1) vs Minor (error=2) |
 
 ---
 
-## 8. Deliverables Checklist
+## Design Decisions
 
-For the end-of-year submission, we aim to present:
-
-- [ ] **Git Repository:** Clean, documented, with DVC remotes configured.
-- [ ] **Reproducible Training:** One command ( or ) executes the full training pipeline.
-- [ ] **Live API Demo:** A Dockerized FastAPI instance running locally that accepts drug pairs and returns predictions with model versioning metadata.
-- [ ] **Monitoring Dashboard:** Screenshot or live demo showing drift metrics and prediction logs.
-- [ ] **Technical Report:** 8–12 pages covering clinical motivation, architecture, MLOps design decisions, and an analysis of a simulated model failure (e.g., performance drop on 2023 cold-start drugs).
-
----
-
-## 9. First Steps to Start This Week
-
-1. **Data Acquisition:** Download the [BioSNAP DDI dataset](https://snap.stanford.edu/biodata/datasets/10001/10001-ChG-Miner.html) and a subset of [DrugBank](https://go.drugbank.com/) (open data for academic use).
-2. **Proof of Concept:** Build a simple 2-layer GraphSAGE model in PyTorch Geometric that overfits a small graph. Verify that we can predict links.
-3. **MLOps Skeleton:** Initialize the Git repo, set up DVC, and log the first experiment to MLflow locally.
-4. **Baseline:** Implement a non-graph baseline (e.g., XGBoost on concatenated Morgan fingerprints) to beat.
+- **SMILES-only input**: Model receives only chemical structure. Drug names are resolved at data-prep time, never at inference.
+- **Morgan fingerprints + molecular descriptors**: 256-bit fingerprints (×4 operations) + Tanimoto + 10 descriptors diff/sum = 1045 features.
+- **PCA + StandardScaler**: 1045 → 50 components (~95% variance). Fit on train split, saved alongside model.
+- **Best model by macro-F1**: With class imbalance (5% Minor, 75% Moderate, 20% Major), macro-F1 treats all classes equally.
+- **uv over pip**: Faster deterministic installs via `uv sync --frozen` in Docker and CI.
+- **Separate lint/format/typecheck/test stages**: CI mirrors pre-commit hooks exactly.
