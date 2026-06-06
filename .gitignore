@@ -49,4 +49,5 @@ Thumbs.db
 #tests-cov
 drift_report.json 
 .coverage
+results.json
 
