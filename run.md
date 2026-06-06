@@ -7,10 +7,11 @@ Predict drug-drug interaction severity (Minor / Moderate / Major) from chemical 
 ## Quick Start
 
 ```bash
-make install
-make train       # trains 5 models × 3 hyperparameter sets, logs to MLflow
-make test        # runs pytest
-make api         # starts FastAPI at :8000
+make install      # install dependencies
+make hooks        # enable pre-commit (runs lint/format before every commit)
+make train        # trains 5 models × 3 hyperparameter sets, logs to MLflow
+make test         # runs pytest
+make api          # starts FastAPI at :8000
 ```
 
 ---

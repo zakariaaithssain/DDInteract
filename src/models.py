@@ -1,62 +1,102 @@
-from sklearn.linear_model import LogisticRegression
+from collections.abc import Sequence
+from itertools import product
+from typing import Any
+
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import LinearSVC
 from xgboost import XGBClassifier
 
-RANDOM_STATE = 42
+RANDOM_STATE: int = 42
 
-MODEL_GRIDS = {
+
+def expand_grid(fixed: dict[str, Any], grid: dict[str, Sequence[Any]]) -> list[dict[str, Any]]:
+    """Expand a fixed parameter dict with a grid of hyperparameters.
+
+    Produces the Cartesian product of all grid values, each merged with
+    the fixed parameters.
+
+    Args:
+        fixed: Parameters that stay constant across all combinations.
+        grid: Dict mapping parameter names to lists of values to search.
+
+    Returns:
+        List of parameter dicts representing all combinations.
+    """
+    keys = grid.keys()
+    return [{**fixed, **dict(zip(keys, vals))} for vals in product(*grid.values())]
+
+
+MODEL_CONFIGS: dict[str, dict[str, Any]] = {
     "LogisticRegression": {
         "model": LogisticRegression,
-        "params": [
-            {"C": 0.01, "solver": "lbfgs", "max_iter": 1000, "class_weight": "balanced"},
-            {"C": 0.1, "solver": "lbfgs", "max_iter": 1000, "class_weight": "balanced"},
-            {"C": 1.0, "solver": "lbfgs", "max_iter": 1000, "class_weight": "balanced"},
-        ],
+        "fixed": {"solver": "lbfgs", "max_iter": 1000, "class_weight": "balanced"},
+        "grid": {"C": [0.01, 0.1, 1.0]},
     },
     "LinearSVC": {
         "model": LinearSVC,
-        "params": [
-            {"C": 0.01, "max_iter": 10000, "class_weight": "balanced"},
-            {"C": 0.1, "max_iter": 10000, "class_weight": "balanced"},
-            {"C": 1.0, "max_iter": 10000, "class_weight": "balanced"},
-        ],
+        "fixed": {"max_iter": 10000, "class_weight": "balanced"},
+        "grid": {"C": [0.01, 0.1, 1.0]},
     },
     "RandomForest": {
         "model": RandomForestClassifier,
-        "params": [
-            {"n_estimators": 100, "max_depth": 8, "class_weight": "balanced"},
-            {"n_estimators": 200, "max_depth": 16, "class_weight": "balanced"},
-            {"n_estimators": 300, "max_depth": 24, "class_weight": "balanced"},
-        ],
+        "fixed": {"class_weight": "balanced"},
+        "grid": {"n_estimators": [100, 200, 300], "max_depth": [8, 16, 24]},
     },
     "KNN": {
         "model": KNeighborsClassifier,
-        "params": [
-            {"n_neighbors": 5},
-            {"n_neighbors": 9},
-            {"n_neighbors": 15},
-        ],
+        "fixed": {},
+        "grid": {"n_neighbors": [5, 9, 15]},
     },
     "XGBoost": {
         "model": XGBClassifier,
         "params": [
             {
-                "objective": "multi:softprob", "num_class": 3,
-                "max_depth": 4, "reg_lambda": 1.0, "reg_alpha": 0.5,
-                "learning_rate": 0.1, "n_estimators": 100,
+                "objective": "multi:softprob",
+                "num_class": 3,
+                "max_depth": 4,
+                "reg_lambda": 1.0,
+                "reg_alpha": 0.5,
+                "learning_rate": 0.1,
+                "n_estimators": 100,
             },
             {
-                "objective": "multi:softprob", "num_class": 3,
-                "max_depth": 6, "reg_lambda": 2.0, "reg_alpha": 1.0,
-                "learning_rate": 0.1, "n_estimators": 200,
+                "objective": "multi:softprob",
+                "num_class": 3,
+                "max_depth": 6,
+                "reg_lambda": 2.0,
+                "reg_alpha": 1.0,
+                "learning_rate": 0.1,
+                "n_estimators": 200,
             },
             {
-                "objective": "multi:softprob", "num_class": 3,
-                "max_depth": 8, "reg_lambda": 4.0, "reg_alpha": 2.0,
-                "learning_rate": 0.05, "n_estimators": 300,
+                "objective": "multi:softprob",
+                "num_class": 3,
+                "max_depth": 8,
+                "reg_lambda": 4.0,
+                "reg_alpha": 2.0,
+                "learning_rate": 0.05,
+                "n_estimators": 300,
             },
         ],
     },
 }
+
+
+def get_param_grid(family: str) -> list[dict[str, Any]]:
+    """Get the list of hyperparameter dicts for a given model family.
+
+    Args:
+        family: Model family name key in MODEL_CONFIGS.
+
+    Returns:
+        List of parameter dicts to iterate over during training.
+
+    Raises:
+        KeyError: If the family is not in MODEL_CONFIGS.
+    """
+    cfg = MODEL_CONFIGS[family]
+    if "params" in cfg:
+        return cfg["params"]
+    return expand_grid(cfg["fixed"], cfg["grid"])

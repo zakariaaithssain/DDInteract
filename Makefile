@@ -1,7 +1,12 @@
-.PHONY: train api test lint format clean export install
+.PHONY: train api test lint format clean export install hooks
 
 install:
-	pip install -r requirements.txt
+	pip install uv 
+	uv sync 
+	 
+
+hooks:
+	pre-commit install
 
 train:
 	python src/train.py

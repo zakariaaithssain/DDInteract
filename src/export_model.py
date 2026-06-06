@@ -1,23 +1,32 @@
+from pathlib import Path
+
 import joblib
 import mlflow
+import numpy as np
 import pandas as pd
-from pathlib import Path
+from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
+
 from features import build_features
-from models import RANDOM_STATE
 from logger import logger
+from models import RANDOM_STATE
 
-EXPERIMENT_NAME = "DDI_Structural_Severity"
-DATA_PATH = "data/chemical_ddi.csv"
-TEST_SIZE = 0.2
-N_PCA = 50
-FEATURE_CACHE = "data/features.npy"
-LABEL_CACHE = "data/labels.npy"
+EXPERIMENT_NAME: str = "DDI_Structural_Severity"
+DATA_PATH: str = "data/chemical_ddi.csv"
+TEST_SIZE: float = 0.2
+N_PCA: int = 50
+FEATURE_CACHE: str = "data/features.npy"
+LABEL_CACHE: str = "data/labels.npy"
 
 
-def main():
+def main() -> None:
+    """Export the best model from MLflow along with its scaler and PCA.
+
+    Queries MLflow for the run with the highest macro F1, downloads the
+    model, rebuilds the scaler and PCA from training data, and saves all
+    three as joblib files to the models/ directory.
+    """
     mlflow.set_experiment(EXPERIMENT_NAME)
     runs = mlflow.search_runs()
 
@@ -25,8 +34,8 @@ def main():
     runs = runs[pd.notna(runs["metrics.macro_f1"])]
     best = runs.loc[runs["metrics.macro_f1"].idxmax()]
 
-    run_id = best["run_id"]
-    model_name = best["tags.mlflow.runName"]
+    run_id: str = best["run_id"]  # type: ignore[call-overload]
+    model_name: str = best["tags.mlflow.runName"]  # type: ignore[call-overload]
     logger.info("Loading best model: %s (run_id=%s)", model_name, run_id)
 
     model = mlflow.sklearn.load_model(f"runs:/{run_id}/model")
@@ -36,7 +45,6 @@ def main():
 
     if Path(FEATURE_CACHE).exists():
         logger.info("Loading cached features")
-        import numpy as np
         X = np.load(FEATURE_CACHE)
         y = np.load(LABEL_CACHE)
     else:
@@ -45,9 +53,7 @@ def main():
         y = df["severity_label"].values
         X = build_features(df)
 
-    X_train, _, _, _ = train_test_split(
-        X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
-    )
+    X_train, _, _, _ = train_test_split(X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y)
 
     scaler = StandardScaler()
     scaler.fit(X_train)

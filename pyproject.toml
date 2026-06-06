@@ -11,11 +11,14 @@ dependencies = [
     "loguru>=0.7.0",
     "matplotlib>=3.5.0",
     "mlflow>=3.13.0",
+    "mypy>=2.1.0",
     "numpy>=2.4.6",
     "pandas>=2.3.3",
+    "pre-commit>=4.6.0",
     "pubchempy>=1.0.5",
     "pydantic>=2.13.4",
     "pytest>=9.0.3",
+    "python-discovery>=1.4.0",
     "rdkit>=2026.3.2",
     "ruff>=0.5.0",
     "scikit-learn>=1.9.0",
@@ -30,6 +33,25 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/*.py" = ["N806", "N803"]
+"tests/*.py" = ["N806"]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "src.features"
+disable_error_code = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "src.train"
+disable_error_code = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "src.export_model"
+disable_error_code = ["call-overload", "index"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

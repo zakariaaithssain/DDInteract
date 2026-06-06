@@ -1,16 +1,17 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import pandas as pd
 import pubchempy as pcp
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from logger import logger
 
-RAW_PATH = "data/raw_ddi.csv"
-OUT_PATH = "data/chemical_ddi.csv"
-SEVERITY_MAP = {"Minor": 0, "Moderate": 1, "Major": 2}
-CACHE = {}
-MAX_WORKERS = 5
+RAW_PATH: str = "data/raw_ddi.csv"
+OUT_PATH: str = "data/chemical_ddi.csv"
+SEVERITY_MAP: dict[str, int] = {"Minor": 0, "Moderate": 1, "Major": 2}
+CACHE: dict[str, str | None] = {}
+MAX_WORKERS: int = 5
 
-FALLBACK_NAMES = {
+FALLBACK_NAMES: dict[str, str] = {
     "St. John's Wort": "hypericum perforatum",
     "Ginseng": "panax ginseng",
     "Ginkgo Biloba": "ginkgo biloba",
@@ -29,6 +30,14 @@ FALLBACK_NAMES = {
 
 
 def get_smiles(drug_name: str) -> tuple[str, str | None]:
+    """Resolve a drug name to its SMILES string via PubChem.
+
+    Args:
+        drug_name: Common or scientific drug name.
+
+    Returns:
+        Tuple of (cleaned drug name, SMILES string or None if unresolved).
+    """
     clean = drug_name.strip()
     if clean in CACHE:
         return clean, CACHE[clean]
@@ -48,7 +57,13 @@ def get_smiles(drug_name: str) -> tuple[str, str | None]:
     return clean, None
 
 
-def main():
+def main() -> None:
+    """Resolve all unique drug names to SMILES and save the enriched dataset.
+
+    Reads raw_ddi.csv, resolves drug names via PubChem (with fallbacks
+    for herbal/complex names), maps severity strings to ordinal labels,
+    drops unresolved rows, and writes the result to chemical_ddi.csv.
+    """
     df = pd.read_csv(RAW_PATH)
     unique_drugs = sorted(set(df["drug_a"].unique()) | set(df["drug_b"].unique()))
     logger.info("Found %d unique drug names", len(unique_drugs))
