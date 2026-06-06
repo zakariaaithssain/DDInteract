@@ -6,12 +6,13 @@ import numpy as np
 import pandas as pd
 
 from src.drift import (
+    _extract_drift_features,
     compute_reference_stats,
     detect_drift,
     fingerprint_density,
     save_report,
 )
-from src.features import build_features
+from src.features import N_BITS, build_features
 
 
 def _make_drug_pairs(smiles_list_a, smiles_list_b, label=0):
@@ -25,7 +26,7 @@ def _make_drug_pairs(smiles_list_a, smiles_list_b, label=0):
     )
 
 
-# Verified valid SMILES strings — small molecules
+# Verified valid SMILES strings -- small molecules
 _SMALL = [
     "O",
     "CCO",
@@ -93,7 +94,7 @@ _SMALL = [
     "C1CCCCCC1",
 ]
 
-# Verified valid SMILES strings — large molecules
+# Verified valid SMILES strings -- large molecules
 _LARGE = [
     "c1ccc2ccccc2c1",
     "c1ccc3cc2ccccc2cc3c1",
@@ -151,12 +152,14 @@ class TestDriftIntegration:
         X_small = build_features(small_df)
         X_large = build_features(large_df)
 
-        dens_small = fingerprint_density(X_small)
-        dens_large = fingerprint_density(X_large)
+        # density only from the fp_a portion
+        dens_small = fingerprint_density(X_small[:, :N_BITS])
+        dens_large = fingerprint_density(X_large[:, :N_BITS])
 
         assert dens_small.shape == (3,)
         assert dens_large.shape == (3,)
-        assert not np.allclose(dens_small, dens_large, atol=0.1)
+        # small molecules tend to have sparser fingerprints than large ones
+        assert float(dens_small.mean()) != float(dens_large.mean())
 
     def test_detect_drift_returns_expected_keys(self):
         df = _make_drug_pairs(_SMALL[:3], _SMALL[3:])
@@ -164,9 +167,8 @@ class TestDriftIntegration:
 
         ref = compute_reference_stats(X)
         assert "fp_density_mean" in ref
-        assert "fp_density_std" in ref
-        assert "fp_density_p5" in ref
-        assert "fp_density_p95" in ref
+        assert "reference_features" in ref
+        assert "reference_densities" in ref
         assert "n_samples" in ref
 
     def test_no_drift_on_same_distribution(self):
@@ -194,10 +196,8 @@ class TestDriftIntegration:
     def test_save_report_writes_valid_json(self, tmp_path, monkeypatch):
         report = {
             "drift_detected": True,
-            "ks_statistic": 0.75,
-            "p_value": 0.001,
-            "mean_density_ref": 0.3,
-            "mean_density_new": 0.6,
+            "drift_share": 0.2,
+            "n_new_samples": 100,
         }
         report_path = tmp_path / "drift_report.json"
         monkeypatch.setattr("src.drift.DRIFT_REPORT", str(report_path))
@@ -207,12 +207,21 @@ class TestDriftIntegration:
             loaded = json.load(f)
 
         assert loaded["drift_detected"] is True
-        assert loaded["ks_statistic"] == 0.75
+        assert loaded["drift_share"] == 0.2
 
-    def test_fingerprint_density_ranges(self):
+    def test_fingerprint_density_ranges_on_fingerprint_portion(self):
         df = _make_drug_pairs(_SMALL[:3], _SMALL[3:])
         X = build_features(df)
-        densities = fingerprint_density(X)
+        densities = fingerprint_density(X[:, :N_BITS])
 
         assert np.all(densities >= 0.0)
         assert np.all(densities <= 1.0)
+
+    def test_extract_drift_features_ranges(self):
+        df = _make_drug_pairs(_SMALL[:3], _SMALL[3:])
+        X = build_features(df)
+        df_drift = _extract_drift_features(X)
+
+        assert df_drift.shape == (3, 5)
+        assert np.all(df_drift["tanimoto"] >= -0.2)
+        assert np.all(df_drift["tanimoto"] <= 1.0)

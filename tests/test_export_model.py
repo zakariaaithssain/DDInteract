@@ -4,14 +4,9 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
-import pytest
 
 
 class TestExportMain:
-    @pytest.fixture(autouse=True)
-    def cleanup(self):
-        yield
-
     def test_export_with_cached_features(self):
         mock_runs = pd.DataFrame(
             {
@@ -23,11 +18,12 @@ class TestExportMain:
 
         mock_model = MagicMock()
         with (
+            patch("src.export_model.Path.exists", return_value=True),
             patch("src.export_model.mlflow.set_experiment"),
             patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
             patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("src.export_model.Path.exists", return_value=True),
             patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.joblib.load", return_value=mock_model),
             patch("src.export_model.joblib.dump"),
             patch("src.export_model.Path.mkdir"),
             patch("src.export_model.logger"),
@@ -47,10 +43,10 @@ class TestExportMain:
 
         mock_model = MagicMock()
         with (
+            patch("src.export_model.Path.exists", return_value=False),
             patch("src.export_model.mlflow.set_experiment"),
             patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
             patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("src.export_model.Path.exists", return_value=False),
             patch("src.export_model.pd.read_csv"),
             patch("src.export_model.build_features", return_value=np.zeros((100, 1045))),
             patch(
@@ -86,11 +82,12 @@ class TestExportMain:
 
         mock_model = MagicMock()
         with (
+            patch("src.export_model.Path.exists", return_value=True),
             patch("src.export_model.mlflow.set_experiment"),
             patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
             patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("src.export_model.Path.exists", return_value=True),
             patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.joblib.load", return_value=mock_model),
             patch("src.export_model.joblib.dump") as mock_dump,
             patch("src.export_model.Path.mkdir"),
             patch("src.export_model.logger"),
@@ -111,11 +108,25 @@ class TestExportMain:
         )
 
         with (
+            patch("src.export_model.Path.exists", return_value=False),
             patch("src.export_model.mlflow.set_experiment"),
             patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
             patch("src.export_model.logger"),
         ):
             from src.export_model import main
 
-            with pytest.raises(ValueError):
-                main()
+            main()  # should return early without error
+
+    def test_export_loads_local_best_model_when_available(self):
+        mock_model = MagicMock()
+        with (
+            patch("src.export_model.Path.exists", return_value=True),
+            patch("src.export_model.joblib.load", return_value=mock_model),
+            patch("src.export_model.Path.mkdir"),
+            patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.joblib.dump"),
+            patch("src.export_model.logger"),
+        ):
+            from src.export_model import main
+
+            main()

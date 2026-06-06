@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "dvc>=3.67.1",
+    "evidently>=0.7.21",
     "fastapi>=0.136.3",
     "joblib>=1.2.0",
     "loguru>=0.7.0",
@@ -56,6 +57,9 @@ disable_error_code = ["call-overload", "index"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    "ignore:numpy.core is deprecated:DeprecationWarning",
+]
 
 [dependency-groups]
 dev = [

@@ -14,7 +14,6 @@ import joblib
 import matplotlib.pyplot as plt
 import mlflow
 import mlflow.sklearn
-import mlflow.xgboost
 from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
 from sklearn.metrics import (
@@ -26,23 +25,31 @@ from sklearn.metrics import (
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from src.features import build_features
+from src.config import (
+    BEST_MODEL_PATH,
+    CLASS_NAMES,
+    DATA_PATH,
+    DRIFT_REFERENCE_PATH,
+    EXPERIMENT_NAME,
+    FEATURE_CACHE,
+    LABEL_CACHE,
+    LOGS_DIR,
+    MODELS_DIR,
+    N_PCA,
+    PCA_PATH,
+    REGISTRY_NAME,
+    RESULTS_PATH,
+    SCALER_PATH,
+    TEST_SIZE,
+)
+from src.drift import compute_reference_stats
+from src.features import N_BITS, build_features
 from src.logger import logger
 from src.models import MODEL_CONFIGS, RANDOM_STATE, get_param_grid
 
 warnings.filterwarnings("ignore", message=".*`y_pred` was renamed to `y_proba`.*")
 warnings.filterwarnings("ignore", message=".*Saving scikit-learn models in the pickle.*")
 warnings.filterwarnings("ignore", message=".*Failed to resolve installed pip version.*")
-
-DATA_PATH = "data/chemical_ddi.csv"
-EXPERIMENT_NAME = "DDI_Structural_Severity"
-TEST_SIZE = 0.2
-N_BITS = 256
-N_PCA = 50
-CLASS_NAMES = ["Minor", "Moderate", "Major"]
-FEATURE_CACHE = "data/features.npy"
-LABEL_CACHE = "data/labels.npy"
-REGISTRY_NAME = "DDI-Severity"
 
 
 def ordinal_mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -179,14 +186,27 @@ def register_best_model(run_id: str, family: str, macro_f1: float) -> None:
         logger.warning("Model registration failed (MLflow registry may be local-only): %s", e)
 
 
+def _save_drift_reference(X: np.ndarray) -> None:
+    """Compute and save drift reference statistics to a JSON file.
+
+    Args:
+        X: Full training feature matrix from ``build_features``.
+    """
+    drift_ref = compute_reference_stats(X)
+    with open(DRIFT_REFERENCE_PATH, "w") as f:
+        json.dump(drift_ref, f, indent=2)
+    logger.info("Drift reference stats saved to %s", DRIFT_REFERENCE_PATH)
+
+
 def main() -> None:
     """Run the full training pipeline.
 
     Loads data, builds/caches features, trains all model families with
-    hyperparameter search, logs results to MLflow, and registers the best model.
+    hyperparameter search, logs results to MLflow, saves the best model
+    to disk, and registers the best model.
     """
-    os.makedirs("models", exist_ok=True)
-    os.makedirs("logs", exist_ok=True)
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    os.makedirs(LOGS_DIR, exist_ok=True)
 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
@@ -194,6 +214,8 @@ def main() -> None:
     logger.info("Loaded %d rows from %s", len(df), DATA_PATH)
 
     X, y = load_or_build_features(df)
+
+    _save_drift_reference(X)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
@@ -208,9 +230,9 @@ def main() -> None:
     X_train_pca = pca.fit_transform(X_train_s)
     X_test_pca = pca.transform(X_test_s)
 
-    joblib.dump(scaler, "models/scaler.joblib")
-    joblib.dump(pca, "models/pca.joblib")
-    logger.info("Scaler and PCA saved to models/")
+    joblib.dump(scaler, SCALER_PATH)
+    joblib.dump(pca, PCA_PATH)
+    logger.info("Scaler and PCA saved to %s/", MODELS_DIR)
 
     all_results: list[Any] = []
     best_across_all: dict[str, Any] = {
@@ -234,11 +256,6 @@ def main() -> None:
             with mlflow.start_run(run_name=run_name) as run:
                 mlflow.set_tag("model_family", family)
 
-                if family == "XGBoost":
-                    mlflow.xgboost.autolog(silent=True)
-                else:
-                    mlflow.sklearn.autolog(silent=True)
-
                 mlflow.log_params(
                     {
                         "model_family": family,
@@ -257,20 +274,17 @@ def main() -> None:
                     model = cfg["model"](**params, random_state=RANDOM_STATE)
                 model.fit(X_train_pca, y_train)
 
-                mlflow.log_artifact("models/scaler.joblib", artifact_path="preprocessing")
-                mlflow.log_artifact("models/pca.joblib", artifact_path="preprocessing")
+                mlflow.log_artifact(SCALER_PATH, artifact_path="preprocessing")
+                mlflow.log_artifact(PCA_PATH, artifact_path="preprocessing")
 
                 cv_scores = cross_val_score(model, X_train_pca, y_train, cv=3)
                 mlflow.log_metric("cv_mean", cv_scores.mean())
                 mlflow.log_metric("cv_std", cv_scores.std())
 
-                metrics = evaluate_and_log(model, X_test_pca, y_test, family, params)
+                metrics = evaluate_and_log(model, X_test_pca, y_test, run_name, params)
 
                 signature = mlflow.models.infer_signature(X_test_pca, model.predict(X_test_pca[:5]))
-                if family == "XGBoost":
-                    mlflow.xgboost.log_model(model, name="model", signature=signature)
-                else:
-                    mlflow.sklearn.log_model(model, name="model", signature=signature)
+                mlflow.sklearn.log_model(model, name="model", signature=signature)
 
                 all_results.append((run_name, family, params, metrics, model))
 
@@ -305,22 +319,20 @@ def main() -> None:
             mlflow.set_tag("best_of_family", "true")
             mlflow.log_params(family_best["params"])
             mlflow.log_metric("best_macro_f1", family_best["macro_f1"])
-            if family == "XGBoost":
-                mlflow.xgboost.log_model(family_best["model"], name="best_model")
-            else:
-                mlflow.sklearn.log_model(family_best["model"], name="best_model")
+            mlflow.sklearn.log_model(family_best["model"], name="best_model")
 
     if best_across_all["model"] is not None:
         logger.info("Best overall: %s (macro_f1=%.4f)", best_across_all["name"], best_across_all["macro_f1"])
+
+        joblib.dump(best_across_all["model"], BEST_MODEL_PATH)
+        logger.info("Best model saved to %s", BEST_MODEL_PATH)
+
         with mlflow.start_run(run_name="best_overall"):
             mlflow.set_tag("best_overall", "true")
             mlflow.log_params(best_across_all["params"])
             mlflow.log_metric("best_macro_f1", best_across_all["macro_f1"])
             mlflow.log_param("best_model_name", best_across_all["name"])
-            if best_across_all["family"] == "XGBoost":
-                mlflow.xgboost.log_model(best_across_all["model"], name="best_model")
-            else:
-                mlflow.sklearn.log_model(best_across_all["model"], name="best_model")
+            mlflow.sklearn.log_model(best_across_all["model"], name="best_model")
 
         register_best_model(best_across_all["run_id"], best_across_all["family"], best_across_all["macro_f1"])
 
@@ -340,9 +352,9 @@ def main() -> None:
             r["mae"],
         )
 
-    with open("results.json", "w") as f:
+    with open(RESULTS_PATH, "w") as f:
         json.dump(results_summary, f, indent=2)
-    logger.info("Results saved to results.json")
+    logger.info("Results saved to %s", RESULTS_PATH)
 
 
 if __name__ == "__main__":

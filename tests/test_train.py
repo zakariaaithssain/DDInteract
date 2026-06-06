@@ -205,6 +205,7 @@ class TestMain:
             patch("src.train.mlflow.sklearn.autolog"),
             patch("src.train.mlflow.sklearn.log_model"),
             patch("src.train.mlflow.register_model", side_effect=Exception("no registry")),
+            patch("src.train._save_drift_reference"),
             patch("src.train.logger"),
             patch("src.train.json.dump"),
             patch.object(
@@ -289,6 +290,7 @@ class TestMain:
             patch("src.train.mlflow.sklearn.autolog"),
             patch("src.train.mlflow.sklearn.log_model"),
             patch("src.train.mlflow.register_model", side_effect=Exception("no registry")),
+            patch("src.train._save_drift_reference"),
             patch("src.train.logger"),
             patch("src.train.json.dump") as mock_json_dump,
             patch.object(

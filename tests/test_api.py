@@ -25,6 +25,24 @@ def _build_dummy_artifacts():
     return scaler, pca, model
 
 
+def _fake_reference_stats() -> dict:
+    return {
+        "fp_density_mean": 0.5,
+        "fp_density_std": 0.1,
+        "fp_density_p5": 0.3,
+        "fp_density_p95": 0.7,
+        "n_samples": 500,
+        "reference_features": {
+            "fp_a_density": [0.5] * 500,
+            "fp_b_density": [0.5] * 500,
+            "fp_diff_mean": [0.2] * 500,
+            "fp_product_mean": [0.3] * 500,
+            "tanimoto": [0.5] * 500,
+        },
+        "reference_densities": [0.5] * 500,
+    }
+
+
 @pytest.fixture(scope="module")
 def client():
     scaler, pca, model = _build_dummy_artifacts()
@@ -87,3 +105,62 @@ class TestPredict:
     def test_predict_empty_strings(self, client):
         resp = client.post("/predict", json={"smiles_a": "", "smiles_b": ""})
         assert resp.status_code == 200
+
+
+class TestDriftMonitoring:
+    def test_drift_endpoint_returns_inactive_when_no_reference(self, client):
+        from src import api
+
+        api.reference_stats = None
+        api.feature_buffer = []
+        api.last_drift_result = None
+
+        resp = client.get("/drift")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["monitoring_active"] is False
+        assert data["samples_collected"] == 0
+        assert data["last_result"] is None
+
+    def test_drift_endpoint_shows_active_monitoring(self, client):
+        from src import api
+
+        api.reference_stats = _fake_reference_stats()
+        api.feature_buffer = []
+        api.last_drift_result = None
+
+        resp = client.get("/drift")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["monitoring_active"] is True
+        assert data["samples_collected"] == 0
+
+    def test_predictions_accumulate_in_buffer(self, client):
+        from src import api
+
+        api.reference_stats = _fake_reference_stats()
+        api.feature_buffer = []
+        api.last_drift_result = None
+
+        client.post("/predict", json={"smiles_a": "O", "smiles_b": "CCO"})
+        assert len(api.feature_buffer) == 1
+
+        client.post("/predict", json={"smiles_a": "CC", "smiles_b": "CO"})
+        assert len(api.feature_buffer) == 2
+
+    def test_drift_check_runs_at_interval(self, client, monkeypatch):
+        from src import api
+
+        api.reference_stats = _fake_reference_stats()
+        api.feature_buffer = []
+        api.last_drift_result = None
+        monkeypatch.setattr("src.api.DRIFT_CHECK_INTERVAL", 2)
+
+        client.post("/predict", json={"smiles_a": "O", "smiles_b": "CCO"})
+        assert len(api.feature_buffer) == 1
+        assert api.last_drift_result is None
+
+        # second prediction hits the threshold
+        client.post("/predict", json={"smiles_a": "CC", "smiles_b": "CO"})
+        assert len(api.feature_buffer) == 0  # buffer reset
+        assert api.last_drift_result is not None

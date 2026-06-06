@@ -3,10 +3,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import pubchempy as pcp
 
+from src.config import DATA_PATH, RAW_DATA_PATH
 from src.logger import logger
 
-RAW_PATH: str = "data/raw_ddi.csv"
-OUT_PATH: str = "data/chemical_ddi.csv"
+RAW_PATH: str = RAW_DATA_PATH
+OUT_PATH: str = DATA_PATH
 SEVERITY_MAP: dict[str, int] = {"Minor": 0, "Moderate": 1, "Major": 2}
 CACHE: dict[str, str | None] = {}
 MAX_WORKERS: int = 5

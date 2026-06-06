@@ -8,7 +8,9 @@ import logging
 import sys
 from pathlib import Path
 
-Path("logs").mkdir(exist_ok=True)
+from src.config import LOG_PATH, LOGS_DIR
+
+Path(LOGS_DIR).mkdir(exist_ok=True)
 
 logger: logging.Logger = logging.getLogger("ddi")
 logger.setLevel(logging.DEBUG)
@@ -23,7 +25,7 @@ sh.setLevel(logging.INFO)
 sh.setFormatter(fmt)
 logger.addHandler(sh)
 
-fh: logging.FileHandler = logging.FileHandler("logs/pipeline.log")
+fh: logging.FileHandler = logging.FileHandler(LOG_PATH)
 fh.setLevel(logging.DEBUG)
 fh.setFormatter(fmt)
 logger.addHandler(fh)
