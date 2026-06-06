@@ -1,3 +1,6 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -14,10 +17,28 @@ from src.logger import logger
 
 CLASS_NAMES: list[str] = ["Minor", "Moderate", "Major"]
 
-app = FastAPI(title="DDI Severity Predictor")
 model: BaseEstimator | None = None
 scaler: StandardScaler | None = None
 pca: PCA | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Load model artifacts on startup and clean up on shutdown.
+
+    Args:
+        app: The FastAPI application instance.
+    """
+    global model, scaler, pca
+    logger.info("Loading model artifacts")
+    model = joblib.load("models/model.joblib")
+    scaler = joblib.load("models/scaler.joblib")
+    pca = joblib.load("models/pca.joblib")
+    logger.info("Artifacts loaded successfully")
+    yield
+
+
+app = FastAPI(title="DDI Severity Predictor", lifespan=lifespan)
 
 
 class PredictRequest(BaseModel):
@@ -35,17 +56,6 @@ class PredictResponse(BaseModel):
     predicted_severity: str
     probabilities: dict[str, float]
     confidence: float
-
-
-@app.on_event("startup")
-def load_artifacts() -> None:
-    """Load the trained model, scaler, and PCA from disk on startup."""
-    global model, scaler, pca
-    logger.info("Loading model artifacts")
-    model = joblib.load("models/model.joblib")
-    scaler = joblib.load("models/scaler.joblib")
-    pca = joblib.load("models/pca.joblib")
-    logger.info("Artifacts loaded successfully")
 
 
 @app.get("/")

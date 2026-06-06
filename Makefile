@@ -1,36 +1,34 @@
 .PHONY: train api test lint format clean export install hooks
 
 install:
-	pip install uv 
-	uv sync 
-	 
+	uv sync
 
 hooks:
-	pre-commit install
+	uv run pre-commit install
 
 train:
-	python src/train.py
+	uv run python -m src.train
 
 api:
-	uvicorn src.api:app --host 0.0.0.0 --port 8000
+	uv run uvicorn src.api:app --host 0.0.0.0 --port 8000
 
 test:
-	pytest -v tests/
+	uv run pytest -v tests/
 
 lint:
-	ruff check src/ tests/
+	uv run ruff check src/ tests/
 
 format:
-	ruff format src/ tests/
+	uv run ruff format src/ tests/
 
 typecheck:
-	mypy src/
+	uv run mypy src/
 
 clean:
 	rm -rf models/ data/features.npy data/labels.npy results.json mlruns/ mlflow.db
 
 export:
-	python src/export_model.py
+	uv run python -m src.export_model
 
 dvc-repro:
 	dvc repro

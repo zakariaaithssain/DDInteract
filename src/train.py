@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,10 @@ from sklearn.preprocessing import StandardScaler
 from src.features import build_features
 from src.logger import logger
 from src.models import MODEL_CONFIGS, RANDOM_STATE, get_param_grid
+
+warnings.filterwarnings("ignore", message=".*`y_pred` was renamed to `y_proba`.*")
+warnings.filterwarnings("ignore", message=".*Saving scikit-learn models in the pickle.*")
+warnings.filterwarnings("ignore", message=".*Failed to resolve installed pip version.*")
 
 DATA_PATH = "data/chemical_ddi.csv"
 EXPERIMENT_NAME = "DDI_Structural_Severity"
@@ -263,9 +268,9 @@ def main() -> None:
 
                 signature = mlflow.models.infer_signature(X_test_pca, model.predict(X_test_pca[:5]))
                 if family == "XGBoost":
-                    mlflow.xgboost.log_model(model, artifact_path="model", signature=signature)
+                    mlflow.xgboost.log_model(model, name="model", signature=signature)
                 else:
-                    mlflow.sklearn.log_model(model, artifact_path="model", signature=signature)
+                    mlflow.sklearn.log_model(model, name="model", signature=signature)
 
                 all_results.append((run_name, family, params, metrics, model))
 
@@ -301,9 +306,9 @@ def main() -> None:
             mlflow.log_params(family_best["params"])
             mlflow.log_metric("best_macro_f1", family_best["macro_f1"])
             if family == "XGBoost":
-                mlflow.xgboost.log_model(family_best["model"], artifact_path="best_model")
+                mlflow.xgboost.log_model(family_best["model"], name="best_model")
             else:
-                mlflow.sklearn.log_model(family_best["model"], artifact_path="best_model")
+                mlflow.sklearn.log_model(family_best["model"], name="best_model")
 
     if best_across_all["model"] is not None:
         logger.info("Best overall: %s (macro_f1=%.4f)", best_across_all["name"], best_across_all["macro_f1"])
@@ -313,9 +318,9 @@ def main() -> None:
             mlflow.log_metric("best_macro_f1", best_across_all["macro_f1"])
             mlflow.log_param("best_model_name", best_across_all["name"])
             if best_across_all["family"] == "XGBoost":
-                mlflow.xgboost.log_model(best_across_all["model"], artifact_path="best_model")
+                mlflow.xgboost.log_model(best_across_all["model"], name="best_model")
             else:
-                mlflow.sklearn.log_model(best_across_all["model"], artifact_path="best_model")
+                mlflow.sklearn.log_model(best_across_all["model"], name="best_model")
 
         register_best_model(best_across_all["run_id"], best_across_all["family"], best_across_all["macro_f1"])
 

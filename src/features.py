@@ -1,9 +1,13 @@
 import numpy as np
 import pandas as pd
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
+from rdkit import Chem, DataStructs, rdBase
+from rdkit.Chem import AllChem, Descriptors
+
+rdBase.DisableLog("rdApp.warning")
 
 N_BITS = 256
+
+_MORGAN_GEN = AllChem.GetMorganGenerator(radius=2, fpSize=N_BITS)
 
 
 def mol_to_fingerprint(mol: Chem.Mol) -> np.ndarray:
@@ -15,8 +19,7 @@ def mol_to_fingerprint(mol: Chem.Mol) -> np.ndarray:
     Returns:
         NumPy array of shape (N_BITS,) with binary fingerprint bits.
     """
-    fp = rdMolDescriptors.GetMorganFingerprintAsBitVect(mol, radius=2, nBits=N_BITS)
-    return np.array(fp)
+    return _MORGAN_GEN.GetFingerprintAsNumPy(mol).astype(np.int8)
 
 
 def mol_to_props(mol: Chem.Mol) -> np.ndarray:
@@ -46,6 +49,20 @@ def mol_to_props(mol: Chem.Mol) -> np.ndarray:
     )
 
 
+def _numpy_to_bitvect(arr: np.ndarray) -> DataStructs.ExplicitBitVect:
+    """Convert a binary numpy array to an RDKit ExplicitBitVect.
+
+    Args:
+        arr: Binary numpy array of shape (N_BITS,).
+
+    Returns:
+        RDKit ExplicitBitVect with bits set where arr is non-zero.
+    """
+    bv = DataStructs.ExplicitBitVect(N_BITS)
+    bv.SetBitsFromList(np.where(arr)[0].tolist())
+    return bv
+
+
 def tanimoto_similarity(mol_a: Chem.Mol, mol_b: Chem.Mol) -> float:
     """Compute Tanimoto similarity between two molecules.
 
@@ -56,9 +73,11 @@ def tanimoto_similarity(mol_a: Chem.Mol, mol_b: Chem.Mol) -> float:
     Returns:
         Tanimoto similarity score between 0 and 1.
     """
-    fpa = AllChem.GetMorganFingerprintAsBitVect(mol_a, radius=2, nBits=N_BITS)
-    fpb = AllChem.GetMorganFingerprintAsBitVect(mol_b, radius=2, nBits=N_BITS)
-    return float(DataStructs.TanimotoSimilarity(fpa, fpb))
+    npa = _MORGAN_GEN.GetFingerprintAsNumPy(mol_a)
+    npb = _MORGAN_GEN.GetFingerprintAsNumPy(mol_b)
+    bv_a = _numpy_to_bitvect(npa)
+    bv_b = _numpy_to_bitvect(npb)
+    return float(DataStructs.TanimotoSimilarity(bv_a, bv_b))
 
 
 def build_features(df: pd.DataFrame) -> np.ndarray:
