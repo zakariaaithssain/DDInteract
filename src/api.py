@@ -11,10 +11,10 @@ from fastapi.responses import FileResponse
 from numpy.typing import NDArray
 from pydantic import BaseModel
 from sklearn.base import BaseEstimator
-from sklearn.decomposition import PCA
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import StandardScaler
 
-from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_REFERENCE_PATH, MODEL_PATH, PCA_PATH, SCALER_PATH
+from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_REFERENCE_PATH, MODEL_PATH, SCALER_PATH, VT_PATH
 from src.drift import detect_drift, save_report
 from src.features import build_features
 from src.logger import logger
@@ -23,7 +23,7 @@ DRIFT_CHECK_INTERVAL: int = 100
 
 model: BaseEstimator | None = None
 scaler: StandardScaler | None = None
-pca: PCA | None = None
+selector: VarianceThreshold | None = None
 
 reference_stats: dict[str, Any] | None = None
 feature_buffer: list[np.ndarray] = []
@@ -37,15 +37,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     Args:
         app: The FastAPI application instance.
     """
-    global model, scaler, pca, reference_stats, feature_buffer, last_drift_result
+    global model, scaler, selector, reference_stats, feature_buffer, last_drift_result
 
     logger.info("Loading model artifacts")
     try:
         model = joblib.load(BEST_MODEL_PATH)
     except FileNotFoundError:
         model = joblib.load(MODEL_PATH)  # fallback to export-model output
+    selector = joblib.load(VT_PATH)
     scaler = joblib.load(SCALER_PATH)
-    pca = joblib.load(PCA_PATH)
     logger.info("Artifacts loaded successfully")
 
     logger.info("Loading drift reference stats")
@@ -135,12 +135,12 @@ def predict(req: PredictRequest) -> PredictResponse:
     global feature_buffer, reference_stats
 
     df = pd.DataFrame({"smiles_a": [req.smiles_a], "smiles_b": [req.smiles_b]})
-    assert scaler is not None and pca is not None and model is not None
+    assert selector is not None and scaler is not None and model is not None
     X: NDArray[np.float64] = build_features(df)
-    X_s: NDArray[np.float64] = scaler.transform(X)
-    X_pca: NDArray[np.float64] = pca.transform(X_s)
+    X_sel: NDArray[np.float64] = selector.transform(X)
+    X_scaled: NDArray[np.float64] = scaler.transform(X_sel)
 
-    probs: NDArray[np.float64] = model.predict_proba(X_pca)[0]
+    probs: NDArray[np.float64] = model.predict_proba(X_scaled)[0]
     label_idx: int = int(np.argmax(probs))
     prob_dict: dict[str, float] = {cls: round(float(p), 4) for cls, p in zip(CLASS_NAMES, probs)}
 

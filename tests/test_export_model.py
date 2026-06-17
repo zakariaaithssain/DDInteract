@@ -15,14 +15,16 @@ class TestExportMain:
                 "metrics.macro_f1": [0.85],
             }
         )
-
+        rng = np.random.default_rng(42)
+        X_mock = rng.uniform(size=(100, 1045)).astype(np.float64)
+        y_mock = rng.integers(0, 3, size=100)
         mock_model = MagicMock()
         with (
             patch("src.export_model.Path.exists", return_value=True),
             patch("src.export_model.mlflow.set_experiment"),
             patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
             patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.np.load", side_effect=[X_mock, y_mock]),
             patch("src.export_model.joblib.load", return_value=mock_model),
             patch("src.export_model.joblib.dump"),
             patch("src.export_model.Path.mkdir"),
@@ -59,19 +61,20 @@ class TestExportMain:
                 ),
             ),
             patch("src.export_model.StandardScaler") as mock_scaler_cls,
-            patch("src.export_model.PCA") as mock_pca_cls,
+            patch("src.export_model.VarianceThreshold") as mock_selector_cls,
             patch("src.export_model.joblib.dump"),
             patch("src.export_model.Path.mkdir"),
             patch("src.export_model.logger"),
         ):
             mock_scaler_cls.return_value.fit.return_value = None
             mock_scaler_cls.return_value.transform.return_value = np.zeros((80, 1045))
-            mock_pca_cls.return_value.fit.return_value = None
+            mock_selector_cls.return_value.fit_transform.return_value = np.zeros((80, 1045))
+            mock_selector_cls.return_value.transform.return_value = np.zeros((80, 1045))
             from src.export_model import main
 
             main()
 
-    def test_export_saves_model_scaler_pca(self):
+    def test_export_saves_model_scaler_selector(self):
         mock_runs = pd.DataFrame(
             {
                 "run_id": ["ghi789"],
@@ -79,14 +82,16 @@ class TestExportMain:
                 "metrics.macro_f1": [0.88],
             }
         )
-
+        rng = np.random.default_rng(42)
+        X_mock = rng.uniform(size=(100, 1045)).astype(np.float64)
+        y_mock = rng.integers(0, 3, size=100)
         mock_model = MagicMock()
         with (
             patch("src.export_model.Path.exists", return_value=True),
             patch("src.export_model.mlflow.set_experiment"),
             patch("src.export_model.mlflow.search_runs", return_value=mock_runs),
             patch("src.export_model.mlflow.sklearn.load_model", return_value=mock_model),
-            patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.np.load", side_effect=[X_mock, y_mock]),
             patch("src.export_model.joblib.load", return_value=mock_model),
             patch("src.export_model.joblib.dump") as mock_dump,
             patch("src.export_model.Path.mkdir"),
@@ -118,12 +123,15 @@ class TestExportMain:
             main()  # should return early without error
 
     def test_export_loads_local_best_model_when_available(self):
+        rng = np.random.default_rng(42)
+        X_mock = rng.uniform(size=(100, 1045)).astype(np.float64)
+        y_mock = rng.integers(0, 3, size=100)
         mock_model = MagicMock()
         with (
             patch("src.export_model.Path.exists", return_value=True),
             patch("src.export_model.joblib.load", return_value=mock_model),
             patch("src.export_model.Path.mkdir"),
-            patch("src.export_model.np.load", return_value=np.zeros((100, 1045))),
+            patch("src.export_model.np.load", side_effect=[X_mock, y_mock]),
             patch("src.export_model.joblib.dump"),
             patch("src.export_model.logger"),
         ):

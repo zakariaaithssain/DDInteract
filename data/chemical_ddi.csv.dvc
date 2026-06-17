@@ -1,0 +1,5 @@
+outs:
+- md5: 04444769c2709e382de5bc0fff917be6
+  size: 18767043
+  hash: md5
+  path: chemical_ddi.csv

@@ -13,9 +13,15 @@ LABEL_CACHE = f"{DATA_DIR}/labels.npy"
 
 # --- Model / preprocessing artifacts ---
 SCALER_PATH = f"{MODELS_DIR}/scaler.joblib"
-PCA_PATH = f"{MODELS_DIR}/pca.joblib"
+VT_PATH = f"{MODELS_DIR}/variance_threshold.joblib"
 MODEL_PATH = f"{MODELS_DIR}/model.joblib"
 BEST_MODEL_PATH = f"{MODELS_DIR}/best_model.joblib"
+
+# --- Intermediate step outputs ---
+X_TRAIN_PATH = f"{MODELS_DIR}/X_train.npy"
+X_TEST_PATH = f"{MODELS_DIR}/X_test.npy"
+Y_TRAIN_PATH = f"{MODELS_DIR}/y_train.npy"
+Y_TEST_PATH = f"{MODELS_DIR}/y_test.npy"
 
 # --- Drift ---
 DRIFT_REFERENCE_PATH = f"{MODELS_DIR}/drift_reference.json"
@@ -30,6 +36,6 @@ RESULTS_PATH = "results.json"
 # --- Training hyperparameters ---
 EXPERIMENT_NAME = "DDI_Structural_Severity"
 TEST_SIZE = 0.2
-N_PCA = 50
+VARIANCE_THRESHOLD = 0.01
 CLASS_NAMES = ["Minor", "Moderate", "Major"]
 REGISTRY_NAME = "DDI-Severity"

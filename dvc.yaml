@@ -1,6 +1,6 @@
 stages:
   train:
-    cmd: python src/train.py
+    cmd: uv run python -m src.train
     deps:
       - data/chemical_ddi.csv
       - src/train.py

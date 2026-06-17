@@ -1,6 +1,6 @@
 n_bits: 256
 radius: 2
-n_pca: 50
+variance_threshold: 0.01
 descriptors:
   - MolWt
   - MolLogP

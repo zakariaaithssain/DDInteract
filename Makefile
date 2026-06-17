@@ -1,4 +1,4 @@
-.PHONY: train api test lint format clean export install hooks
+.PHONY: train build-features select-features search-hyperparams api test lint format clean export install hooks report report-watch
 
 install:
 	uv sync
@@ -6,8 +6,16 @@ install:
 hooks:
 	uv run pre-commit install
 
-train:
-	uv run python -m src.train
+build-features:
+	uv run python -m src.build_features
+
+select-features:
+	uv run python -m src.select_features
+
+search-hyperparams:
+	uv run python -m src.search_hyperparams
+
+train: build-features select-features search-hyperparams
 
 api:
 	uv run uvicorn src.api:app --host 0.0.0.0 --port 8000
@@ -29,6 +37,12 @@ clean:
 
 export:
 	uv run python -m src.export_model
+
+report:
+	latexmk -cd report/
+
+report-watch:
+	latexmk -pvc -cd report/
 
 dvc-repro:
 	dvc repro

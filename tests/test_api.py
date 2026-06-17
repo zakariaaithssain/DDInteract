@@ -5,7 +5,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
-from sklearn.decomposition import PCA
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
@@ -16,13 +16,13 @@ def _build_dummy_artifacts():
     rng = np.random.default_rng(42)
     X_dummy = rng.uniform(size=(100, 1045)).astype(np.float64)
     y_dummy = rng.integers(0, 3, size=100)
+    selector = VarianceThreshold(threshold=0.01)
+    X_sel = selector.fit_transform(X_dummy)
     scaler = StandardScaler()
-    X_s = scaler.fit_transform(X_dummy)
-    pca = PCA(n_components=50, random_state=RANDOM_STATE)
-    X_pca = pca.fit_transform(X_s)
+    X_s = scaler.fit_transform(X_sel)
     model = LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE)
-    model.fit(X_pca, y_dummy)
-    return scaler, pca, model
+    model.fit(X_s, y_dummy)
+    return selector, scaler, model
 
 
 def _fake_reference_stats() -> dict:
@@ -45,8 +45,8 @@ def _fake_reference_stats() -> dict:
 
 @pytest.fixture(scope="module")
 def client():
-    scaler, pca, model = _build_dummy_artifacts()
-    with patch("src.api.joblib.load", side_effect=[model, scaler, pca]):
+    selector, scaler, model = _build_dummy_artifacts()
+    with patch("src.api.joblib.load", side_effect=[model, selector, scaler]):
         from src import api
 
         with TestClient(api.app) as c:
