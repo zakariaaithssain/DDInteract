@@ -5,19 +5,19 @@ from pathlib import Path
 
 
 def test_logger_name():
-    from src.logger import logger
+    from src.config import logger
 
     assert logger.name == "ddi"
 
 
 def test_logger_level():
-    from src.logger import logger
+    from src.config import logger
 
     assert logger.level == logging.DEBUG
 
 
 def test_logger_has_stream_handler():
-    from src.logger import logger
+    from src.config import logger
 
     handlers = logger.handlers
     stream_handlers = [h for h in handlers if isinstance(h, logging.StreamHandler)]
@@ -25,7 +25,7 @@ def test_logger_has_stream_handler():
 
 
 def test_logger_has_file_handler():
-    from src.logger import logger
+    from src.config import logger
 
     handlers = logger.handlers
     file_handlers = [h for h in handlers if isinstance(h, logging.FileHandler)]
@@ -33,7 +33,7 @@ def test_logger_has_file_handler():
 
 
 def test_logger_stream_handler_level():
-    from src.logger import logger
+    from src.config import logger
 
     for h in logger.handlers:
         if isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler):
@@ -43,7 +43,7 @@ def test_logger_stream_handler_level():
 
 
 def test_logger_file_handler_level():
-    from src.logger import logger
+    from src.config import logger
 
     for h in logger.handlers:
         if isinstance(h, logging.FileHandler):
@@ -56,7 +56,7 @@ def test_logs_directory_created():
     assert Path("logs").is_dir()
 
 
-def test_logger_exports_name():
-    from src.logger import __all__
+def test_logger_accessible_from_config():
+    from src.config import logger
 
-    assert "logger" in __all__
+    assert logger.name == "ddi"

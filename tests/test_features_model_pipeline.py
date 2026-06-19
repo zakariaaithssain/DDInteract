@@ -48,7 +48,7 @@ class TestFeaturesToModel:
     def test_build_features_returns_correct_shape(self):
         df = _small_ddi_dataset()
         X = build_features(df)
-        assert X.shape == (10, 1045)
+        assert X.shape == (10, 533)
         assert X.dtype == np.float64
 
     def test_logistic_regression_trains_and_predicts(self):
@@ -77,8 +77,9 @@ class TestFeaturesToModel:
     def test_different_pairs_produce_different_features(self):
         df = _small_ddi_dataset()
         X = build_features(df)
-        # All rows should differ (no duplicate SMILES pairs in dataset)
-        assert len(np.unique(X, axis=0)) == 10
+        # Symmetric pairs (e.g., O/CCO and CCO/O) produce identical vectors,
+        # yielding only 5 unique rows from 10 total.
+        assert len(np.unique(X, axis=0)) == 5
 
     def test_model_generalises_across_folds(self):
         df = _small_ddi_dataset()
@@ -103,7 +104,7 @@ class TestFeaturesToModel:
         np.testing.assert_allclose(probs.sum(axis=1), 1.0, atol=1e-10)
 
     def test_interaction_features_are_symmetric(self):
-        """Tanimoto similarity and prop diff/sum are order-invariant."""
+        """All features (diff, product, sim, prop_diff, prop_sum) are order-invariant."""
         df = pd.DataFrame(
             {
                 "smiles_a": ["O", "CCO"],
@@ -112,10 +113,8 @@ class TestFeaturesToModel:
             }
         )
         X = build_features(df)
-        # fp_a and fp_b are swapped in the feature vector (first 512 bits),
-        # but the symmetric components (diff, product, sim, prop_diff, prop_sum)
-        # should be identical.
-        np.testing.assert_array_equal(X[0][512:], X[1][512:])
+        # All components are symmetric; swapping the drugs should yield identical vectors.
+        np.testing.assert_array_equal(X[0], X[1])
 
     def test_feature_matrix_is_deterministic(self):
         df = _small_ddi_dataset()

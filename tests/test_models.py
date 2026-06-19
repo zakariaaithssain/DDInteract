@@ -2,7 +2,7 @@
 
 import optuna
 
-from src.models import RANDOM_STATE, suggest_rf_params, suggest_xgb_params
+from src.search_hyperparams import RANDOM_STATE, suggest_rf_params, suggest_xgb_params
 
 
 def _make_trial() -> optuna.Trial:

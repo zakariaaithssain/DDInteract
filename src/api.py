@@ -11,19 +11,14 @@ from fastapi.responses import FileResponse
 from numpy.typing import NDArray
 from pydantic import BaseModel
 from sklearn.base import BaseEstimator
-from sklearn.feature_selection import VarianceThreshold
-from sklearn.preprocessing import StandardScaler
 
-from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_REFERENCE_PATH, MODEL_PATH, SCALER_PATH, VT_PATH
+from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_REFERENCE_PATH, MODEL_PATH, logger
 from src.drift import detect_drift, save_report
 from src.features import build_features
-from src.logger import logger
 
 DRIFT_CHECK_INTERVAL: int = 100
 
 model: BaseEstimator | None = None
-scaler: StandardScaler | None = None
-selector: VarianceThreshold | None = None
 
 reference_stats: dict[str, Any] | None = None
 feature_buffer: list[np.ndarray] = []
@@ -32,21 +27,15 @@ last_drift_result: dict[str, Any] | None = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Load model artifacts and drift reference stats on startup.
+    """Load model artifact and drift reference stats on startup."""
+    global model, reference_stats, feature_buffer, last_drift_result
 
-    Args:
-        app: The FastAPI application instance.
-    """
-    global model, scaler, selector, reference_stats, feature_buffer, last_drift_result
-
-    logger.info("Loading model artifacts")
+    logger.info("Loading model artifact")
     try:
         model = joblib.load(BEST_MODEL_PATH)
     except FileNotFoundError:
-        model = joblib.load(MODEL_PATH)  # fallback to export-model output
-    selector = joblib.load(VT_PATH)
-    scaler = joblib.load(SCALER_PATH)
-    logger.info("Artifacts loaded successfully")
+        model = joblib.load(MODEL_PATH)
+    logger.info("Model loaded successfully")
 
     logger.info("Loading drift reference stats")
     try:
@@ -103,11 +92,7 @@ def health() -> dict[str, str]:
 
 
 def _run_drift_check() -> dict[str, Any]:
-    """Run drift detection on buffered features and reset the buffer.
-
-    Returns:
-        Drift detection result dict.
-    """
+    """Run drift detection on buffered features and reset the buffer."""
     global feature_buffer, last_drift_result, reference_stats
 
     if not feature_buffer or reference_stats is None:
@@ -124,23 +109,14 @@ def _run_drift_check() -> dict[str, Any]:
 
 @app.post("/predict", response_model=PredictResponse)
 def predict(req: PredictRequest) -> PredictResponse:
-    """Predict DDI severity for a pair of SMILES strings.
-
-    Args:
-        req: PredictRequest with smiles_a and smiles_b.
-
-    Returns:
-        PredictResponse with predicted severity and probabilities.
-    """
+    """Predict DDI severity for a pair of SMILES strings."""
     global feature_buffer, reference_stats
 
     df = pd.DataFrame({"smiles_a": [req.smiles_a], "smiles_b": [req.smiles_b]})
-    assert selector is not None and scaler is not None and model is not None
+    assert model is not None
     X: NDArray[np.float64] = build_features(df)
-    X_sel: NDArray[np.float64] = selector.transform(X)
-    X_scaled: NDArray[np.float64] = scaler.transform(X_sel)
 
-    probs: NDArray[np.float64] = model.predict_proba(X_scaled)[0]
+    probs: NDArray[np.float64] = model.predict_proba(X)[0]
     label_idx: int = int(np.argmax(probs))
     prob_dict: dict[str, float] = {cls: round(float(p), 4) for cls, p in zip(CLASS_NAMES, probs)}
 

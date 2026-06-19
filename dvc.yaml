@@ -1,10 +1,26 @@
 stages:
-  train:
-    cmd: uv run python -m src.train
+  build_features:
+    cmd: uv run python -m src.build_features
     deps:
       - data/chemical_ddi.csv
-      - src/train.py
+      - src/build_features.py
       - src/features.py
-      - src/models.py
+      - src/config.py
     outs:
+      - data/features.npy
+      - data/labels.npy
+
+  search_hyperparams:
+    cmd: uv run python -m src.search_hyperparams
+    deps:
+      - data/features.npy
+      - data/labels.npy
+      - src/search_hyperparams.py
+      - src/config.py
+      - src/evaluate.py
+      - src/features.py
+      - src/export_model.py
+    outs:
+      - models/best_model.joblib
+      - models/best_params.json
       - results.json

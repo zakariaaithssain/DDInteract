@@ -152,7 +152,7 @@ class TestDriftIntegration:
         X_small = build_features(small_df)
         X_large = build_features(large_df)
 
-        # density only from the fp_a portion
+        # density from the diff portion (first N_BITS cols)
         dens_small = fingerprint_density(X_small[:, :N_BITS])
         dens_large = fingerprint_density(X_large[:, :N_BITS])
 
@@ -166,9 +166,7 @@ class TestDriftIntegration:
         X = build_features(df)
 
         ref = compute_reference_stats(X)
-        assert "fp_density_mean" in ref
         assert "reference_features" in ref
-        assert "reference_densities" in ref
         assert "n_samples" in ref
 
     def test_no_drift_on_same_distribution(self):
@@ -222,6 +220,6 @@ class TestDriftIntegration:
         X = build_features(df)
         df_drift = _extract_drift_features(X)
 
-        assert df_drift.shape == (3, 5)
-        assert np.all(df_drift["tanimoto"] >= -0.2)
+        assert df_drift.shape == (3, 3)
+        assert np.all(df_drift["tanimoto"] >= 0.0)
         assert np.all(df_drift["tanimoto"] <= 1.0)

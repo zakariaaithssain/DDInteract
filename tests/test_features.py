@@ -19,7 +19,7 @@ def test_build_features_output_shape():
         }
     )
     X = build_features(dummy)
-    expected = 4 * N_BITS + 1 + 2 * _n_props()
+    expected = 2 * N_BITS + 1 + 2 * _n_props()
     assert X.shape == (2, expected)
 
 
@@ -53,7 +53,7 @@ def test_build_features_single_row():
         }
     )
     X = build_features(dummy)
-    expected = 4 * N_BITS + 1 + 2 * _n_props()
+    expected = 2 * N_BITS + 1 + 2 * _n_props()
     assert X.shape == (1, expected)
 
 
@@ -65,6 +65,6 @@ def test_build_features_tanimoto_range():
         }
     )
     X = build_features(dummy)
-    sim_col = 4 * N_BITS
+    sim_col = 2 * N_BITS
     assert 0.0 <= X[0, sim_col] <= 1.0
     assert X[1, sim_col] == 1.0

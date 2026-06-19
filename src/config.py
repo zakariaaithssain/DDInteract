@@ -1,4 +1,8 @@
-"""Centralized configuration for paths and training constants."""
+"""Centralized configuration, paths, and logger for the DDI pipeline."""
+
+import logging
+import sys
+from pathlib import Path
 
 # --- Directory roots ---
 MODELS_DIR = "models"
@@ -12,16 +16,9 @@ FEATURE_CACHE = f"{DATA_DIR}/features.npy"
 LABEL_CACHE = f"{DATA_DIR}/labels.npy"
 
 # --- Model / preprocessing artifacts ---
-SCALER_PATH = f"{MODELS_DIR}/scaler.joblib"
-VT_PATH = f"{MODELS_DIR}/variance_threshold.joblib"
 MODEL_PATH = f"{MODELS_DIR}/model.joblib"
 BEST_MODEL_PATH = f"{MODELS_DIR}/best_model.joblib"
-
-# --- Intermediate step outputs ---
-X_TRAIN_PATH = f"{MODELS_DIR}/X_train.npy"
-X_TEST_PATH = f"{MODELS_DIR}/X_test.npy"
-Y_TRAIN_PATH = f"{MODELS_DIR}/y_train.npy"
-Y_TEST_PATH = f"{MODELS_DIR}/y_test.npy"
+BEST_PARAMS_PATH = f"{MODELS_DIR}/best_params.json"
 
 # --- Drift ---
 DRIFT_REFERENCE_PATH = f"{MODELS_DIR}/drift_reference.json"
@@ -33,9 +30,29 @@ LOG_PATH = f"{LOGS_DIR}/pipeline.log"
 # --- Results ---
 RESULTS_PATH = "results.json"
 
-# --- Training hyperparameters ---
+# --- Training metadata ---
 EXPERIMENT_NAME = "DDI_Structural_Severity"
 TEST_SIZE = 0.2
-VARIANCE_THRESHOLD = 0.01
 CLASS_NAMES = ["Minor", "Moderate", "Major"]
 REGISTRY_NAME = "DDI-Severity"
+
+# --- Logger singleton ---
+Path(LOGS_DIR).mkdir(exist_ok=True)
+
+logger: logging.Logger = logging.getLogger("ddi")
+logger.setLevel(logging.DEBUG)
+
+fmt: logging.Formatter = logging.Formatter(
+    "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+    datefmt="%H:%M:%S",
+)
+
+sh: logging.StreamHandler = logging.StreamHandler(sys.stdout)
+sh.setLevel(logging.INFO)
+sh.setFormatter(fmt)
+logger.addHandler(sh)
+
+fh: logging.FileHandler = logging.FileHandler(LOG_PATH)
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(fmt)
+logger.addHandler(fh)

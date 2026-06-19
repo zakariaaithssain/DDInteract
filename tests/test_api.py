@@ -5,48 +5,35 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
-from sklearn.feature_selection import VarianceThreshold
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
 
-from src.models import RANDOM_STATE
+from src.search_hyperparams import RANDOM_STATE
 
 
 def _build_dummy_artifacts():
     rng = np.random.default_rng(42)
-    X_dummy = rng.uniform(size=(100, 1045)).astype(np.float64)
+    X_dummy = rng.uniform(size=(100, 533)).astype(np.float64)
     y_dummy = rng.integers(0, 3, size=100)
-    selector = VarianceThreshold(threshold=0.01)
-    X_sel = selector.fit_transform(X_dummy)
-    scaler = StandardScaler()
-    X_s = scaler.fit_transform(X_sel)
     model = LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE)
-    model.fit(X_s, y_dummy)
-    return selector, scaler, model
+    model.fit(X_dummy, y_dummy)
+    return model
 
 
 def _fake_reference_stats() -> dict:
     return {
-        "fp_density_mean": 0.5,
-        "fp_density_std": 0.1,
-        "fp_density_p5": 0.3,
-        "fp_density_p95": 0.7,
         "n_samples": 500,
         "reference_features": {
-            "fp_a_density": [0.5] * 500,
-            "fp_b_density": [0.5] * 500,
             "fp_diff_mean": [0.2] * 500,
             "fp_product_mean": [0.3] * 500,
             "tanimoto": [0.5] * 500,
         },
-        "reference_densities": [0.5] * 500,
     }
 
 
 @pytest.fixture(scope="module")
 def client():
-    selector, scaler, model = _build_dummy_artifacts()
-    with patch("src.api.joblib.load", side_effect=[model, selector, scaler]):
+    model = _build_dummy_artifacts()
+    with patch("src.api.joblib.load", return_value=model):
         from src import api
 
         with TestClient(api.app) as c:

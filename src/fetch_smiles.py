@@ -3,8 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import pubchempy as pcp
 
-from src.config import DATA_PATH, RAW_DATA_PATH
-from src.logger import logger
+from src.config import DATA_PATH, RAW_DATA_PATH, logger
 
 RAW_PATH: str = RAW_DATA_PATH
 OUT_PATH: str = DATA_PATH

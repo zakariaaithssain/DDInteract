@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from rdkit import Chem, DataStructs, rdBase
+from rdkit import Chem, rdBase
 from rdkit.Chem import AllChem, Descriptors
 
 rdBase.DisableLog("rdApp.warning")
@@ -49,39 +49,8 @@ def mol_to_props(mol: Chem.Mol) -> np.ndarray:
     )
 
 
-def _numpy_to_bitvect(arr: np.ndarray) -> DataStructs.ExplicitBitVect:
-    """Convert a binary numpy array to an RDKit ExplicitBitVect.
-
-    Args:
-        arr: Binary numpy array of shape (N_BITS,).
-
-    Returns:
-        RDKit ExplicitBitVect with bits set where arr is non-zero.
-    """
-    bv = DataStructs.ExplicitBitVect(N_BITS)
-    bv.SetBitsFromList(np.where(arr)[0].tolist())
-    return bv
-
-
-def tanimoto_similarity(mol_a: Chem.Mol, mol_b: Chem.Mol) -> float:
-    """Compute Tanimoto similarity between two molecules.
-
-    Args:
-        mol_a: First RDKit Mol object.
-        mol_b: Second RDKit Mol object.
-
-    Returns:
-        Tanimoto similarity score between 0 and 1.
-    """
-    npa = _MORGAN_GEN.GetFingerprintAsNumPy(mol_a)
-    npb = _MORGAN_GEN.GetFingerprintAsNumPy(mol_b)
-    bv_a = _numpy_to_bitvect(npa)
-    bv_b = _numpy_to_bitvect(npb)
-    return float(DataStructs.TanimotoSimilarity(bv_a, bv_b))
-
-
 def build_features(df: pd.DataFrame) -> np.ndarray:
-    """Build a 1045-dimensional feature matrix from SMILES pairs.
+    """Build a 533-dimensional feature matrix from SMILES pairs.
 
     Features include Morgan fingerprint differences/products,
     Tanimoto similarity, and 10 molecular descriptor sums/differences.
@@ -90,7 +59,7 @@ def build_features(df: pd.DataFrame) -> np.ndarray:
         df: DataFrame with 'smiles_a' and 'smiles_b' columns.
 
     Returns:
-        Feature matrix of shape (n_samples, 4 * N_BITS + 1 + 2 * 10).
+        Feature matrix of shape (n_samples, 2 * N_BITS + 1 + 2 * 10).
     """
     mols_a = [Chem.MolFromSmiles(s) for s in df["smiles_a"]]
     mols_b = [Chem.MolFromSmiles(s) for s in df["smiles_b"]]
@@ -99,7 +68,9 @@ def build_features(df: pd.DataFrame) -> np.ndarray:
     fp_b = np.array([mol_to_fingerprint(m) for m in mols_b])
     diff = np.abs(fp_a - fp_b)
     product = fp_a * fp_b
-    sim = np.array([tanimoto_similarity(ma, mb) for ma, mb in zip(mols_a, mols_b)])
+    intersection = product.sum(axis=1)
+    union = fp_a.sum(axis=1) + fp_b.sum(axis=1) - intersection
+    sim = np.divide(intersection, union, out=np.zeros_like(intersection, dtype=np.float64), where=union != 0)
 
     props_a = np.array([mol_to_props(m) for m in mols_a])
     props_b = np.array([mol_to_props(m) for m in mols_b])
@@ -108,7 +79,7 @@ def build_features(df: pd.DataFrame) -> np.ndarray:
 
     X = np.column_stack(
         [
-            np.hstack([fp_a, fp_b, diff, product]),
+            np.hstack([diff, product]),
             sim,
             prop_diff,
             prop_sum,

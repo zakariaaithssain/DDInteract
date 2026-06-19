@@ -15,20 +15,20 @@ from src.drift import (
 )
 
 N_BITS = 256
-N_FEATURES = 4 * N_BITS + 1 + 20  # 1045
+N_FEATURES = 2 * N_BITS + 1 + 20  # 533
 
 
 def _make_feature_matrix(n: int, rng: np.random.Generator | None = None) -> np.ndarray:
-    """Build a synthetic full feature matrix (1045 columns) for testing."""
+    """Build a synthetic full feature matrix (533 columns) for testing."""
     if rng is None:
         rng = np.random.default_rng(42)
     X = np.zeros((n, N_FEATURES))
-    # fingerprint block (first 4*N_BITS cols) — binary
-    X[:, : 4 * N_BITS] = rng.integers(0, 2, size=(n, 4 * N_BITS)).astype(np.float64)
-    # tanimoto (col 4*N_BITS) — [0, 1]
-    X[:, 4 * N_BITS] = rng.uniform(0, 1, size=n)
+    # fingerprint block (first 2*N_BITS cols) — binary
+    X[:, : 2 * N_BITS] = rng.integers(0, 2, size=(n, 2 * N_BITS)).astype(np.float64)
+    # tanimoto (col 2*N_BITS) — [0, 1]
+    X[:, 2 * N_BITS] = rng.uniform(0, 1, size=n)
     # descriptor block (last 20 cols) — continuous
-    X[:, 4 * N_BITS + 1 :] = rng.normal(0, 1, size=(n, 20))
+    X[:, 2 * N_BITS + 1 :] = rng.normal(0, 1, size=(n, 20))
     return X
 
 
@@ -59,26 +59,26 @@ class TestExtractDriftFeatures:
     def test_output_columns(self):
         X = _make_feature_matrix(10)
         df = _extract_drift_features(X)
-        expected = {"fp_a_density", "fp_b_density", "fp_diff_mean", "fp_product_mean", "tanimoto"}
+        expected = {"fp_diff_mean", "fp_product_mean", "tanimoto"}
         assert set(df.columns) == expected
 
     def test_output_shape(self):
         X = _make_feature_matrix(7)
         df = _extract_drift_features(X)
-        assert df.shape == (7, 5)
+        assert df.shape == (7, 3)
 
-    def test_fp_a_density_values(self):
+    def test_fp_diff_mean_values(self):
         X = np.zeros((3, N_FEATURES))
         X[0, :256] = 1.0  # all bits on for first sample
         X[1, :128] = 1.0  # half bits on
         X[2, :64] = 1.0  # quarter bits on
         df = _extract_drift_features(X)
-        assert np.allclose(df["fp_a_density"].values, [1.0, 0.5, 0.25])
+        assert np.allclose(df["fp_diff_mean"].values, [1.0, 0.5, 0.25])
 
     def test_tanimoto_column(self):
         X = _make_feature_matrix(5)
         df = _extract_drift_features(X)
-        assert np.allclose(df["tanimoto"].values, X[:, 4 * N_BITS])
+        assert np.allclose(df["tanimoto"].values, X[:, 2 * N_BITS])
 
 
 class TestComputeReferenceStats:
@@ -86,13 +86,8 @@ class TestComputeReferenceStats:
         X = _make_feature_matrix(100)
         stats = compute_reference_stats(X)
         assert set(stats.keys()) == {
-            "fp_density_mean",
-            "fp_density_std",
-            "fp_density_p5",
-            "fp_density_p95",
             "n_samples",
             "reference_features",
-            "reference_densities",
         }
 
     def test_n_samples(self):
@@ -105,17 +100,10 @@ class TestComputeReferenceStats:
         stats = compute_reference_stats(X)
         assert isinstance(stats["reference_features"], dict)
         assert set(stats["reference_features"].keys()) == {
-            "fp_a_density",
-            "fp_b_density",
             "fp_diff_mean",
             "fp_product_mean",
             "tanimoto",
         }
-
-    def test_reference_densities_length_matches_n_samples(self):
-        X = _make_feature_matrix(73)
-        stats = compute_reference_stats(X)
-        assert len(stats["reference_densities"]) == 73
 
 
 class TestDetectDrift:

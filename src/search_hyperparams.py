@@ -1,6 +1,6 @@
-"""Step 3: Optuna TPE hyperparameter search.
+"""Step 2: Optuna TPE hyperparameter search.
 
-Loads the transformed train/test splits from step 2, runs
+Loads cached features, splits into train/test, runs
 trials of RandomForest / XGBoost with TPE sampling, logs
 metrics per trial, and saves the best model.
 """
@@ -14,30 +14,56 @@ import mlflow
 import mlflow.sklearn
 import numpy as np
 import optuna
-from optuna_integration.xgboost import XGBoostPruningCallback
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
 from xgboost import XGBClassifier
 
 from src.config import (
     BEST_MODEL_PATH,
+    BEST_PARAMS_PATH,
     EXPERIMENT_NAME,
+    FEATURE_CACHE,
+    LABEL_CACHE,
     LOGS_DIR,
     MODELS_DIR,
     RESULTS_PATH,
-    VARIANCE_THRESHOLD,
-    X_TEST_PATH,
-    X_TRAIN_PATH,
-    Y_TEST_PATH,
-    Y_TRAIN_PATH,
+    TEST_SIZE,
+    logger,
 )
 from src.evaluate import evaluate_and_log
+from src.export_model import register_best_model
 from src.features import N_BITS
-from src.logger import logger
-from src.models import RANDOM_STATE, suggest_rf_params, suggest_xgb_params
-from src.registry import register_best_model
 
+RANDOM_STATE: int = 42
 N_TRIALS = 30
+
+
+def suggest_rf_params(trial: optuna.Trial) -> dict[str, Any]:
+    return {
+        "n_estimators": trial.suggest_int("rf_n_estimators", 100, 500, log=True),
+        "max_depth": trial.suggest_int("rf_max_depth", 4, 32),
+        "min_samples_split": trial.suggest_int("rf_min_samples_split", 2, 20),
+        "min_samples_leaf": trial.suggest_int("rf_min_samples_leaf", 1, 20),
+        "max_features": trial.suggest_categorical("rf_max_features", ["sqrt", "log2", None]),
+        "class_weight": "balanced",
+        "random_state": RANDOM_STATE,
+    }
+
+
+def suggest_xgb_params(trial: optuna.Trial) -> dict[str, Any]:
+    return {
+        "n_estimators": trial.suggest_int("xgb_n_estimators", 100, 500, log=True),
+        "max_depth": trial.suggest_int("xgb_max_depth", 3, 12),
+        "learning_rate": trial.suggest_float("xgb_learning_rate", 0.01, 0.3, log=True),
+        "reg_lambda": trial.suggest_float("xgb_reg_lambda", 0.1, 10.0, log=True),
+        "reg_alpha": trial.suggest_float("xgb_reg_alpha", 0.0, 5.0),
+        "subsample": trial.suggest_float("xgb_subsample", 0.6, 1.0),
+        "colsample_bytree": trial.suggest_float("xgb_colsample_bytree", 0.6, 1.0),
+        "min_child_weight": trial.suggest_int("xgb_min_child_weight", 1, 10),
+        "objective": "multi:softprob",
+        "num_class": 3,
+        "random_state": RANDOM_STATE,
+    }
 
 
 def _clean_params(params: dict[str, Any]) -> dict[str, Any]:
@@ -71,8 +97,13 @@ def objective(
         params = suggest_xgb_params(trial)
         model = XGBClassifier(**params, tree_method="hist", n_jobs=-1, verbosity=0)
         cv_scores = cross_val_score(model, X_train, y_train, cv=3)
-        pruning_callback = XGBoostPruningCallback(trial, "validation_0-mlogloss")
-        model.set_params(callbacks=[pruning_callback])
+        try:
+            from optuna_integration.xgboost import XGBoostPruningCallback
+
+            pruning_callback = XGBoostPruningCallback(trial, "validation_0-mlogloss")
+            model.set_params(callbacks=[pruning_callback])
+        except ImportError:
+            pass
         model.fit(
             X_train,
             y_train,
@@ -89,7 +120,6 @@ def objective(
             {
                 "model_family": family,
                 "n_bits": N_BITS,
-                "variance_threshold": VARIANCE_THRESHOLD,
                 "n_features_raw": n_features_raw,
                 "n_features_after_vt": X_train.shape[1],
             }
@@ -115,11 +145,14 @@ def main() -> None:
 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    X_train = np.load(X_TRAIN_PATH)
-    X_test = np.load(X_TEST_PATH)
-    y_train = np.load(Y_TRAIN_PATH)
-    y_test = np.load(Y_TEST_PATH)
-    logger.info("Loaded transformed splits: train=%s, test=%s", X_train.shape, X_test.shape)
+    X = np.load(FEATURE_CACHE)
+    y = np.load(LABEL_CACHE)
+    logger.info("Loaded features: %s, labels: %s", X.shape, y.shape)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
+    )
+    logger.info("Train/test split: %d train, %d test", len(X_train), len(X_test))
 
     n_features_raw = X_train.shape[1]
 
@@ -167,6 +200,10 @@ def main() -> None:
     joblib.dump(best_model, BEST_MODEL_PATH)
     logger.info("Best model saved to %s", BEST_MODEL_PATH)
 
+    with open(BEST_PARAMS_PATH, "w") as f:
+        json.dump({"family": best_family, **best_params}, f, indent=2)
+    logger.info("Best params saved to %s", BEST_PARAMS_PATH)
+
     with mlflow.start_run(run_name="best_overall"):
         mlflow.set_tag("best_overall", "true")
         mlflow.set_tag("model_family", best_family)
@@ -186,12 +223,12 @@ def main() -> None:
     logger.info("--- Results (sorted by macro F1) ---")
     for r in results_summary:
         logger.info(
-            "Trial %-3d %-15s  acc=%.4f  macro_f1=%.4f  kappa=%.4f  mae=%.4f",
+            "Trial %-3d %-15s  acc=%.4f  macro_f1=%.4f  qwk=%.4f  mae=%.4f",
             r.get("trial_number", -1),
             r.get("family", "?"),
             r.get("accuracy", 0),
             r.get("macro_f1", 0),
-            r.get("kappa", 0),
+            r.get("qwk", 0),
             r.get("mae", 0),
         )
 
