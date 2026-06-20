@@ -57,6 +57,10 @@ disable_error_code = ["attr-defined"]
 module = "src.export_model"
 disable_error_code = ["call-overload", "index"]
 
+[[tool.mypy.overrides]]
+module = "rdkit.*"
+ignore_errors = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 filterwarnings = [
