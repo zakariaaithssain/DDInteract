@@ -12,7 +12,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel
 from sklearn.base import BaseEstimator
 
-from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_BUFFER_PATH, DRIFT_REFERENCE_PATH, MODEL_PATH, logger
+from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_BUFFER_PATH, DRIFT_REFERENCE_PATH, logger
 from src.drift import detect_drift, save_report
 from src.features import build_features
 
@@ -59,9 +59,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Loading model artifact")
     try:
         model = joblib.load(BEST_MODEL_PATH)
+        logger.info("Model loaded successfully")
     except FileNotFoundError:
-        model = joblib.load(MODEL_PATH)
-    logger.info("Model loaded successfully")
+        logger.error("Model file not found at %s — predictions will fail", BEST_MODEL_PATH)
+        model = None
 
     logger.info("Loading drift reference stats")
     try:
@@ -145,8 +146,12 @@ def predict(req: PredictRequest) -> PredictResponse:
     """Predict DDI severity for a pair of SMILES strings."""
     global feature_buffer, class_buffer, confidence_buffer, reference_stats
 
+    if model is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=503, detail="Model not loaded — train the pipeline first")
+
     df = pd.DataFrame({"smiles_a": [req.smiles_a], "smiles_b": [req.smiles_b]})
-    assert model is not None
     X: NDArray[np.float64] = build_features(df)
 
     probs: NDArray[np.float64] = model.predict_proba(X)[0]

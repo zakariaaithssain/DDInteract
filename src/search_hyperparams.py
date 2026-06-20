@@ -257,17 +257,17 @@ def main() -> None:
         json.dump({"family": best_family, **best_params}, f, indent=2)
     logger.info("Best params saved to %s", BEST_PARAMS_PATH)
 
-    with mlflow.start_run(run_name="best_overall"):
+    with mlflow.start_run(run_name="best_overall") as best_run:
         mlflow.set_tag("best_overall", "true")
         mlflow.set_tag("model_family", best_family)
         mlflow.log_param("best_trial_number", best_trial.number)
         mlflow.log_params(_clean_params(best_params))
         mlflow.log_metric("best_macro_f1", best_macro_f1)
         evaluate_and_log(best_model, X_test_full, y_test_full, "best_overall", _clean_params(best_params))
-        mlflow.sklearn.log_model(best_model, name="best_model")
+        mlflow.sklearn.log_model(best_model, name="model")
 
     register_best_model(
-        best_trial.user_attrs["run_id"],
+        best_run.info.run_id,
         best_family,
         best_macro_f1,
     )
