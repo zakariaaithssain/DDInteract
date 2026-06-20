@@ -248,12 +248,8 @@ class TestSearchHyperparamsMain:
         X = np.zeros((100, 10))
         y = np.zeros(100, dtype=int)
 
-        X_train_full = X[:80]
-        X_test_full = X[80:]
-        y_train_full = y[:80]
-        y_test_full = y[80:]
         X_search = X[:20]
-        _, y_search, _ = X[:20], y[:20], y[:20]
+        y_search = y[:20]
         X_train_search = X_search[:16]
         X_test_search = X_search[16:]
         y_train_search = y_search[:16]
@@ -264,20 +260,16 @@ class TestSearchHyperparamsMain:
             patch(
                 "src.search_hyperparams.train_test_split",
                 side_effect=[
-                    (X_train_full, X_test_full, y_train_full, y_test_full),
                     (X_search, X_search, y_search, y_search),
                     (X_train_search, X_test_search, y_train_search, y_test_search),
                 ],
             ),
             patch("src.search_hyperparams.optuna.create_study", return_value=mock_study),
-            patch("src.search_hyperparams.RandomForestClassifier"),
-            patch("src.search_hyperparams.evaluate_and_log"),
-            patch("src.search_hyperparams.joblib.dump"),
             patch("src.search_hyperparams.json.dump"),
             patch("src.search_hyperparams.mlflow"),
-            patch("src.search_hyperparams.register_best_model"),
             patch("src.search_hyperparams.logger"),
             patch("src.search_hyperparams.os.makedirs"),
+            patch("builtins.open", new_callable=MagicMock()),
         ):
             import src.search_hyperparams as shp
 
@@ -301,44 +293,42 @@ def _objective_with_family(trial, x_train, y_train, x_test, y_test, n_features_r
         return objective(trial, x_train, y_train, x_test, y_test, n_features_raw, len(x_train), len(x_test))
 
 
-class TestMain:
-    def _make_mock_trial(self, number: int, value: float) -> MagicMock:
-        trial = MagicMock(spec=optuna.trial.FrozenTrial)
-        trial.number = number
-        trial.value = value
-        trial.state = optuna.trial.TrialState.COMPLETE
-        trial.user_attrs = {
-            "model": MagicMock(),
-            "family": "RandomForest",
-            "params": {"n_estimators": 100, "max_depth": 8},
-            "run_id": f"run_{number}",
-            "metrics": {"accuracy": 0.9, "macro_f1": value, "weighted_f1": 0.88, "qwk": 0.7, "mae": 0.2},
-        }
-        return trial
+class TestTrainMain:
+    def test_main_trains_and_logs(self):
+        X = np.zeros((100, 10))
+        y = np.zeros(100, dtype=int)
+        X_train, X_test = X[:80], X[80:]
+        y_train, y_test = y[:80], y[80:]
 
-    def test_main_runs_pipeline(self):
-        import src.train
+        mock_model = MagicMock()
+        mock_model.predict.return_value = np.zeros(len(X_test))
+
+        mock_sig = MagicMock()
+        mock_sig.to_dict.return_value = {"inputs": {}, "outputs": {}}
 
         with (
-            patch("src.train.build_features") as mock_build,
-            patch("src.train.search_hyperparams") as mock_search,
+            patch("src.train.json.load", return_value={"family": "RandomForest", "n_estimators": 100}),
+            patch("src.train.np.load", side_effect=[X, y]),
+            patch("src.train.train_test_split", return_value=(X_train, X_test, y_train, y_test)),
+            patch("src.train.RandomForestClassifier", return_value=mock_model),
+            patch(
+                "src.train.evaluate_and_log",
+                return_value={"macro_f1": 0.85, "accuracy": 0.84, "weighted_f1": 0.83, "qwk": 0.7, "mae": 0.2},
+            ),
+            patch("src.train.joblib.dump"),
+            patch("src.train.mlflow") as mock_mlflow,
+            patch("src.train.mlflow.models.infer_signature", return_value=mock_sig),
+            patch("src.train.register_best_model"),
+            patch("src.train.logger"),
+            patch("src.train.os.makedirs"),
+            patch("builtins.open", new_callable=MagicMock()),
         ):
+            import src.train
+
             src.train.main()
 
-        mock_build.assert_called_once()
-        mock_search.assert_called_once()
-
-    def test_main_saves_results_json(self):
-        import src.train
-
-        with (
-            patch("src.train.build_features") as mock_build,
-            patch("src.train.search_hyperparams") as mock_search,
-        ):
-            src.train.main()
-
-        mock_build.assert_called_once()
-        mock_search.assert_called_once()
+        mock_model.fit.assert_called_once()
+        mock_mlflow.start_run.assert_called_once()
 
 
 class TestRegisterBestModel:
@@ -350,14 +340,19 @@ class TestRegisterBestModel:
             mock_version = MagicMock()
             mock_version.version = "42"
             mock_register.return_value = mock_version
-            register_best_model("run_123", "LogisticRegression", 0.85)
+            register_best_model("run_123", "LogisticRegression", 0.85, best_trial_number=5)
         mock_register.assert_called_once()
         mock_client.return_value.set_registered_model_alias.assert_called_once_with(REGISTRY_NAME, "production", "42")
+        mock_client.return_value.set_model_version_tag.assert_any_call(
+            REGISTRY_NAME, "42", "family", "LogisticRegression"
+        )
+        mock_client.return_value.set_model_version_tag.assert_any_call(REGISTRY_NAME, "42", "macro_f1", "0.85")
+        mock_client.return_value.set_model_version_tag.assert_any_call(REGISTRY_NAME, "42", "best_trial_number", "5")
 
     def test_logs_warning_on_failure(self):
         with (
             patch("src.export_model.mlflow.register_model", side_effect=Exception("fail")),
             patch("src.export_model.logger") as mock_logger,
         ):
-            register_best_model("run_123", "LR", 0.85)
+            register_best_model("run_123", "LR", 0.85, best_trial_number=5)
         mock_logger.warning.assert_called_once()

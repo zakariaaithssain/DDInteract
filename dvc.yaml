@@ -19,8 +19,19 @@ stages:
       - src/config.py
       - src/evaluate.py
       - src/features.py
+    outs:
+      - models/best_params.json
+      - trials_leaderboard.json
+
+  train:
+    cmd: uv run python -m src.train
+    deps:
+      - data/features.npy
+      - data/labels.npy
+      - models/best_params.json
+      - src/train.py
+      - src/config.py
+      - src/evaluate.py
       - src/export_model.py
     outs:
       - models/best_model.joblib
-      - models/best_params.json
-      - trials_leaderboard.json

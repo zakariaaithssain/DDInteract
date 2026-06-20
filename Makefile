@@ -13,6 +13,7 @@ search-hyperparams:
 	uv run python -m src.search_hyperparams
 
 train: build-features search-hyperparams
+	uv run python -m src.train
 
 api:
 	uv run uvicorn src.api:app --host 0.0.0.0 --port 8000
@@ -30,7 +31,7 @@ typecheck:
 	uv run mypy src/
 
 clean:
-	rm -rf models/ data/features.npy data/labels.npy results.json mlruns/ mlflow.db
+	rm -rf models/ data/features.npy data/labels.npy trials_leaderboard.json mlruns/ mlflow.db
 
 export:
 	uv run python -m src.export_model

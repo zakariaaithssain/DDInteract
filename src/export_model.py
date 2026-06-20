@@ -12,12 +12,16 @@ from src.config import BEST_MODEL_PATH, MODEL_PATH, MODELS_DIR, REGISTRY_NAME, l
 EXPERIMENT_NAME: str = "DDI_Structural_Severity"
 
 
-def register_best_model(run_id: str, family: str, macro_f1: float) -> None:
+def register_best_model(run_id: str, family: str, macro_f1: float, best_trial_number: int | None = None) -> None:
     model_uri = f"runs:/{run_id}/model"
     try:
         result = mlflow.register_model(model_uri, REGISTRY_NAME)
         client = mlflow.MlflowClient()
         client.set_registered_model_alias(REGISTRY_NAME, "production", result.version)
+        client.set_model_version_tag(REGISTRY_NAME, result.version, "family", family)
+        client.set_model_version_tag(REGISTRY_NAME, result.version, "macro_f1", str(macro_f1))
+        if best_trial_number is not None:
+            client.set_model_version_tag(REGISTRY_NAME, result.version, "best_trial_number", str(best_trial_number))
         logger.info(
             "Registered %s as version %s of '%s' (macro_f1=%.4f)", family, result.version, REGISTRY_NAME, macro_f1
         )

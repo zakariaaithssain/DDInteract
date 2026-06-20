@@ -1,17 +1,15 @@
 """Step 2: Optuna TPE hyperparameter search.
 
-Loads cached features, splits into train/test, runs
-trials of RandomForest / XGBoost with TPE sampling, logs
-metrics per trial, and saves the best model.
+Loads cached features, runs trials of RandomForest / XGBoost
+on a 20 % stratified subsample with dual pruning, and saves
+the best hyperparameters to disk.
 """
 
 import json
 import os
 from typing import Any
 
-import joblib
 import mlflow
-import mlflow.sklearn
 import numpy as np
 import optuna
 from sklearn.ensemble import RandomForestClassifier
@@ -20,7 +18,6 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test
 from xgboost import XGBClassifier
 
 from src.config import (
-    BEST_MODEL_PATH,
     BEST_PARAMS_PATH,
     EXPERIMENT_NAME,
     FEATURE_CACHE,
@@ -32,7 +29,6 @@ from src.config import (
     logger,
 )
 from src.evaluate import evaluate_and_log
-from src.export_model import register_best_model
 from src.features import N_BITS
 
 RANDOM_STATE: int = 42
@@ -163,8 +159,6 @@ def objective(
 
         metrics = evaluate_and_log(model, X_test, y_test, run_name, _clean_params(params))
 
-        mlflow.sklearn.log_model(model, name="model")
-
         trial.set_user_attr("run_id", run.info.run_id)
 
     trial.set_user_attr("family", family)
@@ -189,10 +183,6 @@ def main() -> None:
     X = np.load(FEATURE_CACHE)
     y = np.load(LABEL_CACHE)
     logger.info("Loaded features: %s, labels: %s", X.shape, y.shape)
-
-    X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
-        X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
-    )
 
     X_search, _, y_search, _ = train_test_split(X, y, test_size=0.8, random_state=RANDOM_STATE, stratify=y)
     logger.info("Search subsample (20%%): %s", X_search.shape)
@@ -245,33 +235,9 @@ def main() -> None:
 
     logger.info("Best trial: %s (macro_f1=%.4f) — %s", best_trial.number, best_macro_f1, best_family)
 
-    if best_family == "RandomForest":
-        best_model = RandomForestClassifier(**best_params)
-    else:
-        best_model = XGBClassifier(**best_params, tree_method="hist", n_jobs=-1, verbosity=0)
-    best_model.fit(X_train_full, y_train_full)
-
-    joblib.dump(best_model, BEST_MODEL_PATH)
-    logger.info("Best model saved to %s", BEST_MODEL_PATH)
-
     with open(BEST_PARAMS_PATH, "w") as f:
         json.dump({"family": best_family, **best_params}, f, indent=2)
     logger.info("Best params saved to %s", BEST_PARAMS_PATH)
-
-    with mlflow.start_run(run_name="best_overall") as best_run:
-        mlflow.set_tag("best_overall", "true")
-        mlflow.set_tag("model_family", best_family)
-        mlflow.log_param("best_trial_number", best_trial.number)
-        mlflow.log_params(_clean_params(best_params))
-        mlflow.log_metric("best_macro_f1", best_macro_f1)
-        evaluate_and_log(best_model, X_test_full, y_test_full, "best_overall", _clean_params(best_params))
-        mlflow.sklearn.log_model(best_model, name="model")
-
-    register_best_model(
-        best_run.info.run_id,
-        best_family,
-        best_macro_f1,
-    )
 
     results_summary = sorted(all_results, key=lambda x: -x.get("macro_f1", 0))
 
