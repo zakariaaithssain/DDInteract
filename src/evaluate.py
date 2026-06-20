@@ -36,7 +36,7 @@ def quadratic_weighted_kappa(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 def log_confusion_matrix(cm: np.ndarray, run_name: str, params_str: str) -> None:
     fig, ax = plt.subplots(figsize=(6, 5))
-    ax.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+    ax.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)  # type: ignore[attr-defined]
     ax.set_title(f"Confusion Matrix — {run_name}\n{params_str}", fontsize=9)
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")

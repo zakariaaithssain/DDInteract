@@ -239,6 +239,7 @@ def main() -> None:
 
     best_trial = study.best_trial
     best_family: str = best_trial.user_attrs["family"]
+    assert best_trial.value is not None
     best_macro_f1: float = best_trial.value
     best_params = _reconstruct_params(dict(best_trial.params), best_family)
 
