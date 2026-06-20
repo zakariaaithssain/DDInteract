@@ -12,7 +12,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel
 from sklearn.base import BaseEstimator
 
-from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_REFERENCE_PATH, MODEL_PATH, logger
+from src.config import BEST_MODEL_PATH, CLASS_NAMES, DRIFT_BUFFER_PATH, DRIFT_REFERENCE_PATH, MODEL_PATH, logger
 from src.drift import detect_drift, save_report
 from src.features import build_features
 
@@ -22,12 +22,38 @@ model: BaseEstimator | None = None
 
 reference_stats: dict[str, Any] | None = None
 feature_buffer: list[np.ndarray] = []
+class_buffer: list[str] = []
+confidence_buffer: list[float] = []
 last_drift_result: dict[str, Any] | None = None
+
+
+def _load_buffer() -> list[np.ndarray]:
+    """Load persisted drift buffer from disk."""
+    try:
+        data = np.load(DRIFT_BUFFER_PATH)
+        if data.ndim == 1:
+            return [data]
+        return [data[i] for i in range(len(data))]
+    except FileNotFoundError:
+        return []
+
+
+def _save_buffer(buffer: list[np.ndarray]) -> None:
+    """Persist drift buffer to disk."""
+    if buffer:
+        np.save(DRIFT_BUFFER_PATH, np.array(buffer))
+    else:
+        import os
+
+        try:
+            os.remove(DRIFT_BUFFER_PATH)
+        except FileNotFoundError:
+            pass
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Load model artifact and drift reference stats on startup."""
+    """Load model artifact, drift reference stats, and persisted buffer on startup."""
     global model, reference_stats, feature_buffer, last_drift_result
 
     logger.info("Loading model artifact")
@@ -45,7 +71,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except FileNotFoundError, json.JSONDecodeError:
         logger.warning("Drift reference not found or invalid — drift detection disabled")
 
-    feature_buffer = []
+    feature_buffer = _load_buffer()
+    if feature_buffer:
+        logger.info("Restored drift buffer from disk (%d samples)", len(feature_buffer))
     last_drift_result = None
     yield
 
@@ -71,12 +99,14 @@ class PredictResponse(BaseModel):
 
 
 class DriftStatus(BaseModel):
-    """Drift detection status."""
+    """Drift detection status with per-type breakdown."""
 
     monitoring_active: bool
     samples_collected: int
     check_interval: int
     last_result: dict[str, Any] | None
+    label_counts: dict[str, int] | None = None
+    mean_confidence: float | None = None
 
 
 @app.get("/")
@@ -92,17 +122,20 @@ def health() -> dict[str, str]:
 
 
 def _run_drift_check() -> dict[str, Any]:
-    """Run drift detection on buffered features and reset the buffer."""
-    global feature_buffer, last_drift_result, reference_stats
+    """Run all three drift checks on buffered data and reset buffers."""
+    global feature_buffer, class_buffer, confidence_buffer, last_drift_result, reference_stats
 
     if not feature_buffer or reference_stats is None:
         return {"drift_detected": False, "reason": "insufficient_data"}
 
     X_new = np.array(feature_buffer)
-    result = detect_drift(X_new, reference_stats)
+    result = detect_drift(X_new, class_buffer, confidence_buffer, reference_stats)
     if result.get("drift_detected"):
         save_report(result)
     feature_buffer = []
+    class_buffer = []
+    confidence_buffer = []
+    _save_buffer(feature_buffer)
     last_drift_result = result
     return result
 
@@ -110,7 +143,7 @@ def _run_drift_check() -> dict[str, Any]:
 @app.post("/predict", response_model=PredictResponse)
 def predict(req: PredictRequest) -> PredictResponse:
     """Predict DDI severity for a pair of SMILES strings."""
-    global feature_buffer, reference_stats
+    global feature_buffer, class_buffer, confidence_buffer, reference_stats
 
     df = pd.DataFrame({"smiles_a": [req.smiles_a], "smiles_b": [req.smiles_b]})
     assert model is not None
@@ -130,6 +163,9 @@ def predict(req: PredictRequest) -> PredictResponse:
 
     if reference_stats is not None:
         feature_buffer.append(X[0])
+        class_buffer.append(CLASS_NAMES[label_idx])
+        confidence_buffer.append(float(probs[label_idx]))
+        _save_buffer(feature_buffer)
         if len(feature_buffer) >= DRIFT_CHECK_INTERVAL:
             _run_drift_check()
 
@@ -144,10 +180,18 @@ def predict(req: PredictRequest) -> PredictResponse:
 
 @app.get("/drift", response_model=DriftStatus)
 def drift_status() -> DriftStatus:
-    """Return current drift detection status."""
+    """Return current drift detection status with per-type breakdown."""
+    label_counts = None
+    mean_confidence = None
+    if class_buffer:
+        label_counts = {cls: class_buffer.count(cls) for cls in CLASS_NAMES}
+    if confidence_buffer:
+        mean_confidence = round(float(np.mean(confidence_buffer)), 4)
     return DriftStatus(
         monitoring_active=reference_stats is not None,
         samples_collected=len(feature_buffer),
         check_interval=DRIFT_CHECK_INTERVAL,
         last_result=last_drift_result,
+        label_counts=label_counts,
+        mean_confidence=mean_confidence,
     )

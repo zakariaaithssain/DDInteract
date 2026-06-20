@@ -23,4 +23,4 @@ stages:
     outs:
       - models/best_model.joblib
       - models/best_params.json
-      - results.json
+      - trials_leaderboard.json

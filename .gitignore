@@ -20,7 +20,7 @@ mlruns/
 
 # Generated model artifacts
 models/
-results.json
+trials_leaderboard.json
 
 # Logs
 logs/
@@ -51,3 +51,4 @@ drift_report.json
 .coverage
 
 report/
+

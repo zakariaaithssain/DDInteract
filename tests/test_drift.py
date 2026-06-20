@@ -59,13 +59,37 @@ class TestExtractDriftFeatures:
     def test_output_columns(self):
         X = _make_feature_matrix(10)
         df = _extract_drift_features(X)
-        expected = {"fp_diff_mean", "fp_product_mean", "tanimoto"}
+        expected = {
+            "fp_diff_mean",
+            "fp_product_mean",
+            "tanimoto",
+            "MolWt_diff",
+            "MolWt_sum",
+            "MolLogP_diff",
+            "MolLogP_sum",
+            "NumHDonors_diff",
+            "NumHDonors_sum",
+            "NumHAcceptors_diff",
+            "NumHAcceptors_sum",
+            "TPSA_diff",
+            "TPSA_sum",
+            "NumRotatableBonds_diff",
+            "NumRotatableBonds_sum",
+            "NumAromaticRings_diff",
+            "NumAromaticRings_sum",
+            "NumAliphaticRings_diff",
+            "NumAliphaticRings_sum",
+            "FractionCSP3_diff",
+            "FractionCSP3_sum",
+            "NumHeteroatoms_diff",
+            "NumHeteroatoms_sum",
+        }
         assert set(df.columns) == expected
 
     def test_output_shape(self):
         X = _make_feature_matrix(7)
         df = _extract_drift_features(X)
-        assert df.shape == (7, 3)
+        assert df.shape == (7, 23)
 
     def test_fp_diff_mean_values(self):
         X = np.zeros((3, N_FEATURES))
@@ -99,44 +123,63 @@ class TestComputeReferenceStats:
         X = _make_feature_matrix(10)
         stats = compute_reference_stats(X)
         assert isinstance(stats["reference_features"], dict)
-        assert set(stats["reference_features"].keys()) == {
+        expected = {
             "fp_diff_mean",
             "fp_product_mean",
             "tanimoto",
+            "MolWt_diff",
+            "MolWt_sum",
+            "MolLogP_diff",
+            "MolLogP_sum",
+            "NumHDonors_diff",
+            "NumHDonors_sum",
+            "NumHAcceptors_diff",
+            "NumHAcceptors_sum",
+            "TPSA_diff",
+            "TPSA_sum",
+            "NumRotatableBonds_diff",
+            "NumRotatableBonds_sum",
+            "NumAromaticRings_diff",
+            "NumAromaticRings_sum",
+            "NumAliphaticRings_diff",
+            "NumAliphaticRings_sum",
+            "FractionCSP3_diff",
+            "FractionCSP3_sum",
+            "NumHeteroatoms_diff",
+            "NumHeteroatoms_sum",
         }
+        assert set(stats["reference_features"].keys()) == expected
 
 
 class TestDetectDrift:
     def test_insufficient_samples(self):
         X_new = _make_feature_matrix(4)
         stats = {"n_samples": 100, "reference_features": {}}
-        result = detect_drift(X_new, stats)
-        assert result["drift_detected"] is False
-        assert result["reason"] == "insufficient_samples"
+        result = detect_drift(X_new, ["Moderate"], [0.9], stats)
+        assert result["covariate_shift"]["drift_detected"] is False
+        assert result["covariate_shift"]["reason"] == "insufficient_samples"
 
     def test_no_reference_features(self):
         X_new = _make_feature_matrix(10)
         stats = {"n_samples": 100}
-        result = detect_drift(X_new, stats)
-        assert result["drift_detected"] is False
-        assert result["reason"] == "no_reference_features"
+        result = detect_drift(X_new, ["Moderate"] * 10, [0.9] * 10, stats)
+        assert result["covariate_shift"]["drift_detected"] is False
+        assert result["covariate_shift"]["reason"] == "no_reference_features"
 
     def test_no_drift_same_distribution(self):
         rng = np.random.default_rng(42)
         X_ref = _make_feature_matrix(500, rng)
         stats = compute_reference_stats(X_ref)
-        # Different seed, same distribution
         X_new = _make_feature_matrix(100, np.random.default_rng(99))
-        result = detect_drift(X_new, stats)
+        result = detect_drift(X_new, ["Moderate"] * 100, [0.95] * 100, stats)
         assert result["drift_detected"] is False
 
     def test_drift_different_distribution(self):
         rng = np.random.default_rng(42)
         X_ref = _make_feature_matrix(500, rng)
         stats = compute_reference_stats(X_ref)
-        # All-zero fingerprints = very different from random binary
         X_new = np.zeros((100, N_FEATURES))
-        result = detect_drift(X_new, stats, p_threshold=0.01)
+        result = detect_drift(X_new, ["Moderate"] * 100, [0.95] * 100, stats, p_threshold=0.01)
         assert result["drift_detected"] is True
 
     def test_drift_output_keys(self):
@@ -144,17 +187,17 @@ class TestDetectDrift:
         X_ref = _make_feature_matrix(500, rng)
         stats = compute_reference_stats(X_ref)
         X_new = _make_feature_matrix(100, np.random.default_rng(99))
-        result = detect_drift(X_new, stats)
-        expected = {"drift_detected", "drift_share", "drifted_columns", "column_p_values", "threshold", "n_new_samples"}
-        assert expected.issubset(result.keys())
+        result = detect_drift(X_new, ["Moderate"] * 100, [0.95] * 100, stats)
+        expected = {"drift_detected", "covariate_shift", "label_shift", "concept_drift"}
+        assert set(result.keys()) == expected
 
     def test_drift_share_is_float(self):
         X_ref = _make_feature_matrix(100)
         stats = compute_reference_stats(X_ref)
         X_new = _make_feature_matrix(20)
-        result = detect_drift(X_new, stats)
-        assert isinstance(result["drift_share"], float)
-        assert 0.0 <= result["drift_share"] <= 1.0
+        result = detect_drift(X_new, ["Moderate"] * 20, [0.95] * 20, stats)
+        assert isinstance(result["covariate_shift"]["drift_share"], float)
+        assert 0.0 <= result["covariate_shift"]["drift_share"] <= 1.0
 
 
 class TestSaveReport:

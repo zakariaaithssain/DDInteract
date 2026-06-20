@@ -90,8 +90,6 @@ make api          # start FastAPI at localhost:8000
 
 ```
 ├── .github/workflows/ci-cd.yaml   — GitHub Actions (lint → typecheck → test)
-├── config/
-│   └── config.yaml                 — Hydra experiment config
 ├── data/
 │   ├── chemical_ddi.csv            — 109K drug pairs (DVC input)
 │   ├── features.npy                — Cached feature matrix (gitignored)

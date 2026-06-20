@@ -192,11 +192,10 @@ class TestObjective:
     def test_objective_random_forest(self, trial_and_data):
         trial, X_train, y_train, X_test, y_test = trial_and_data
         mock_model = MagicMock()
-        mock_model.predict.return_value = np.zeros(len(X_test))
+        mock_model.predict.side_effect = lambda x: np.zeros(len(x))
 
         with (
             patch("src.search_hyperparams.RandomForestClassifier", return_value=mock_model),
-            patch("src.search_hyperparams.cross_val_score", return_value=np.array([0.8, 0.82, 0.81])),
             patch("src.search_hyperparams.evaluate_and_log") as mock_eval,
             patch("src.search_hyperparams.mlflow"),
         ):
@@ -204,7 +203,7 @@ class TestObjective:
             result = _objective_with_family(trial, X_train, y_train, X_test, y_test, 10, "RandomForest")
 
         assert result == 0.85
-        mock_model.fit.assert_called_once_with(X_train, y_train)
+        assert mock_model.fit.call_count == 4  # 3 folds + 1 full train
 
     def test_objective_xgboost(self, trial_and_data):
         trial, X_train, y_train, X_test, y_test = trial_and_data
@@ -249,11 +248,30 @@ class TestSearchHyperparamsMain:
         X = np.zeros((100, 10))
         y = np.zeros(100, dtype=int)
 
+        X_train_full = X[:80]
+        X_test_full = X[80:]
+        y_train_full = y[:80]
+        y_test_full = y[80:]
+        X_search = X[:20]
+        _, y_search, _ = X[:20], y[:20], y[:20]
+        X_train_search = X_search[:16]
+        X_test_search = X_search[16:]
+        y_train_search = y_search[:16]
+        y_test_search = y_search[16:]
+
         with (
             patch("src.search_hyperparams.np.load", side_effect=[X, y]),
-            patch("src.search_hyperparams.train_test_split", return_value=(X[:80], X[80:], y[:80], y[80:])),
+            patch(
+                "src.search_hyperparams.train_test_split",
+                side_effect=[
+                    (X_train_full, X_test_full, y_train_full, y_test_full),
+                    (X_search, X_search, y_search, y_search),
+                    (X_train_search, X_test_search, y_train_search, y_test_search),
+                ],
+            ),
             patch("src.search_hyperparams.optuna.create_study", return_value=mock_study),
             patch("src.search_hyperparams.RandomForestClassifier"),
+            patch("src.search_hyperparams.evaluate_and_log"),
             patch("src.search_hyperparams.joblib.dump"),
             patch("src.search_hyperparams.json.dump"),
             patch("src.search_hyperparams.mlflow"),
@@ -280,7 +298,7 @@ def _objective_with_family(trial, x_train, y_train, x_test, y_test, n_features_r
     from src.search_hyperparams import objective
 
     with patch.object(trial, "suggest_categorical", patched_suggest):
-        return objective(trial, x_train, y_train, x_test, y_test, n_features_raw)
+        return objective(trial, x_train, y_train, x_test, y_test, n_features_raw, len(x_train), len(x_test))
 
 
 class TestMain:

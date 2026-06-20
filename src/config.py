@@ -23,12 +23,13 @@ BEST_PARAMS_PATH = f"{MODELS_DIR}/best_params.json"
 # --- Drift ---
 DRIFT_REFERENCE_PATH = f"{MODELS_DIR}/drift_reference.json"
 DRIFT_REPORT_PATH = "drift_report.json"
+DRIFT_BUFFER_PATH = "data/drift_buffer.npy"
 
 # --- Logging ---
 LOG_PATH = f"{LOGS_DIR}/pipeline.log"
 
 # --- Results ---
-RESULTS_PATH = "results.json"
+TRIALS_LEADERBOARD_PATH = "trials_leaderboard.json"
 
 # --- Training metadata ---
 EXPERIMENT_NAME = "DDI_Structural_Severity"

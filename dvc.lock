@@ -1,0 +1,30 @@
+schema: '2.0'
+stages:
+  build_features:
+    cmd: uv run python -m src.build_features
+    deps:
+    - path: data/chemical_ddi.csv
+      hash: md5
+      md5: 04444769c2709e382de5bc0fff917be6
+      size: 18767043
+    - path: src/build_features.py
+      hash: md5
+      md5: 85ad974a9065ca4e7d46afbe9fa8cbd3
+      size: 1585
+    - path: src/config.py
+      hash: md5
+      md5: d277ef019ce718874f6ddf71ea430880
+      size: 1547
+    - path: src/features.py
+      hash: md5
+      md5: 43a7717154a3d9d9f0d650b423eb4f8f
+      size: 2675
+    outs:
+    - path: data/features.npy
+      hash: md5
+      md5: 4c44de15e9ecf3aad7343906ee940f2d
+      size: 466656552
+    - path: data/labels.npy
+      hash: md5
+      md5: dfc307fe6e7f9a3fdeb3bc7ebf37bfa9
+      size: 875656

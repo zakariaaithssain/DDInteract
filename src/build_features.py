@@ -38,7 +38,7 @@ def main() -> None:
 
     X, y = load_or_build_features(df)
 
-    drift_ref = compute_reference_stats(X)
+    drift_ref = compute_reference_stats(X, y)
     with open(DRIFT_REFERENCE_PATH, "w") as f:
         json.dump(drift_ref, f, indent=2)
     logger.info("Drift reference stats saved to %s", DRIFT_REFERENCE_PATH)

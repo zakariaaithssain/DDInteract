@@ -15,7 +15,8 @@ import mlflow.sklearn
 import numpy as np
 import optuna
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.metrics import f1_score
+from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from xgboost import XGBClassifier
 
 from src.config import (
@@ -26,8 +27,8 @@ from src.config import (
     LABEL_CACHE,
     LOGS_DIR,
     MODELS_DIR,
-    RESULTS_PATH,
     TEST_SIZE,
+    TRIALS_LEADERBOARD_PATH,
     logger,
 )
 from src.evaluate import evaluate_and_log
@@ -35,12 +36,12 @@ from src.export_model import register_best_model
 from src.features import N_BITS
 
 RANDOM_STATE: int = 42
-N_TRIALS = 30
+N_TRIALS = 50
 
 
 def suggest_rf_params(trial: optuna.Trial) -> dict[str, Any]:
     return {
-        "n_estimators": trial.suggest_int("rf_n_estimators", 100, 500, log=True),
+        "n_estimators": trial.suggest_int("rf_n_estimators", 100, 300, log=True),
         "max_depth": trial.suggest_int("rf_max_depth", 4, 32),
         "min_samples_split": trial.suggest_int("rf_min_samples_split", 2, 20),
         "min_samples_leaf": trial.suggest_int("rf_min_samples_leaf", 1, 20),
@@ -52,7 +53,7 @@ def suggest_rf_params(trial: optuna.Trial) -> dict[str, Any]:
 
 def suggest_xgb_params(trial: optuna.Trial) -> dict[str, Any]:
     return {
-        "n_estimators": trial.suggest_int("xgb_n_estimators", 100, 500, log=True),
+        "n_estimators": trial.suggest_int("xgb_n_estimators", 100, 300, log=True),
         "max_depth": trial.suggest_int("xgb_max_depth", 3, 12),
         "learning_rate": trial.suggest_float("xgb_learning_rate", 0.01, 0.3, log=True),
         "reg_lambda": trial.suggest_float("xgb_reg_lambda", 0.1, 10.0, log=True),
@@ -83,6 +84,8 @@ def objective(
     X_test: np.ndarray,
     y_test: np.ndarray,
     n_features_raw: int,
+    train_size: int,
+    test_size: int,
 ) -> float:
     mlflow.set_experiment(EXPERIMENT_NAME)
 
@@ -90,13 +93,38 @@ def objective(
 
     if family == "RandomForest":
         params = suggest_rf_params(trial)
+
+        skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
+        fold_scores: list[float] = []
+        for step, (train_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
+            X_fold_train = X_train[train_idx]
+            y_fold_train = y_train[train_idx]
+            X_fold_val = X_train[val_idx]
+            y_fold_val = y_train[val_idx]
+
+            fold_model = RandomForestClassifier(**params)
+            fold_model.fit(X_fold_train, y_fold_train)
+            preds = fold_model.predict(X_fold_val)
+            fold_f1 = f1_score(y_fold_val, preds, average="macro")
+
+            fold_scores.append(fold_f1)
+            trial.report(fold_f1, step)
+            if trial.should_prune():
+                raise optuna.TrialPruned()
+
+        cv_mean = float(np.mean(fold_scores))
+        cv_std = float(np.std(fold_scores))
+
         model = RandomForestClassifier(**params)
         model.fit(X_train, y_train)
-        cv_scores = cross_val_score(model, X_train, y_train, cv=3)
+        estimator_type = "sklearn.ensemble.RandomForestClassifier"
     else:
         params = suggest_xgb_params(trial)
         model = XGBClassifier(**params, tree_method="hist", n_jobs=-1, verbosity=0)
         cv_scores = cross_val_score(model, X_train, y_train, cv=3)
+        cv_mean = cv_scores.mean()
+        cv_std = cv_scores.std()
+
         try:
             from optuna_integration.xgboost import XGBoostPruningCallback
 
@@ -110,26 +138,32 @@ def objective(
             eval_set=[(X_test, y_test)],
             verbose=False,
         )
+        estimator_type = "xgboost.XGBClassifier"
 
     run_name = f"{family}_trial_{trial.number}"
     with mlflow.start_run(run_name=run_name, nested=True) as run:
         mlflow.set_tag("model_family", family)
         mlflow.set_tag("trial_number", trial.number)
+        mlflow.set_tag("estimator_type", estimator_type)
 
         mlflow.log_params(
             {
                 "model_family": family,
                 "n_bits": N_BITS,
-                "n_features_raw": n_features_raw,
-                "n_features_after_vt": X_train.shape[1],
+                "n_features": n_features_raw,
+                "dataset_source": FEATURE_CACHE,
+                "train_size": train_size,
+                "test_size": test_size,
             }
         )
         mlflow.log_params(_clean_params(params))
 
-        mlflow.log_metric("cv_mean", cv_scores.mean())
-        mlflow.log_metric("cv_std", cv_scores.std())
+        mlflow.log_metric("cv_mean", cv_mean)
+        mlflow.log_metric("cv_std", cv_std)
 
         metrics = evaluate_and_log(model, X_test, y_test, run_name, _clean_params(params))
+
+        mlflow.sklearn.log_model(model, name="model")
 
         trial.set_user_attr("run_id", run.info.run_id)
 
@@ -144,30 +178,49 @@ def main() -> None:
     os.makedirs(LOGS_DIR, exist_ok=True)
 
     mlflow.set_experiment(EXPERIMENT_NAME)
+    client = mlflow.MlflowClient()
+    experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
+    if experiment is not None:
+        client.set_experiment_tag(experiment.experiment_id, "project", "DDI_Severity_Predictor")
+        client.set_experiment_tag(experiment.experiment_id, "task", "multi_class_classification")
+        client.set_experiment_tag(experiment.experiment_id, "metrics_primary", "macro_f1")
+        client.set_experiment_tag(experiment.experiment_id, "model_families", "RandomForest,XGBoost")
 
     X = np.load(FEATURE_CACHE)
     y = np.load(LABEL_CACHE)
     logger.info("Loaded features: %s, labels: %s", X.shape, y.shape)
 
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
         X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
     )
-    logger.info("Train/test split: %d train, %d test", len(X_train), len(X_test))
+
+    X_search, _, y_search, _ = train_test_split(X, y, test_size=0.8, random_state=RANDOM_STATE, stratify=y)
+    logger.info("Search subsample (20%%): %s", X_search.shape)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_search, y_search, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y_search
+    )
+    logger.info("Search train/test split: %d train, %d test", len(X_train), len(X_test))
 
     n_features_raw = X_train.shape[1]
+    train_size = X_train.shape[0]
+    test_size = X_test.shape[0]
 
     sampler = optuna.samplers.TPESampler(seed=RANDOM_STATE)
+    pruner = optuna.pruners.MedianPruner()
+
     storage = f"sqlite:///{MODELS_DIR}/optuna_study.db"
     study = optuna.create_study(
         study_name="DDI_Severity_TPE",
         direction="maximize",
         sampler=sampler,
+        pruner=pruner,
         storage=storage,
         load_if_exists=True,
     )
 
     study.optimize(
-        lambda trial: objective(trial, X_train, y_train, X_test, y_test, n_features_raw),
+        lambda trial: objective(trial, X_train, y_train, X_test, y_test, n_features_raw, train_size, test_size),
         n_trials=N_TRIALS,
         n_jobs=-1,
     )
@@ -195,7 +248,7 @@ def main() -> None:
         best_model = RandomForestClassifier(**best_params)
     else:
         best_model = XGBClassifier(**best_params, tree_method="hist", n_jobs=-1, verbosity=0)
-    best_model.fit(X_train, y_train)
+    best_model.fit(X_train_full, y_train_full)
 
     joblib.dump(best_model, BEST_MODEL_PATH)
     logger.info("Best model saved to %s", BEST_MODEL_PATH)
@@ -210,6 +263,7 @@ def main() -> None:
         mlflow.log_param("best_trial_number", best_trial.number)
         mlflow.log_params(_clean_params(best_params))
         mlflow.log_metric("best_macro_f1", best_macro_f1)
+        evaluate_and_log(best_model, X_test_full, y_test_full, "best_overall", _clean_params(best_params))
         mlflow.sklearn.log_model(best_model, name="best_model")
 
     register_best_model(
@@ -232,9 +286,9 @@ def main() -> None:
             r.get("mae", 0),
         )
 
-    with open(RESULTS_PATH, "w") as f:
+    with open(TRIALS_LEADERBOARD_PATH, "w") as f:
         json.dump(results_summary, f, indent=2)
-    logger.info("Results saved to %s", RESULTS_PATH)
+    logger.info("Trials leaderboard saved to %s", TRIALS_LEADERBOARD_PATH)
 
 
 if __name__ == "__main__":

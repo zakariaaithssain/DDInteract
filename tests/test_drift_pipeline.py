@@ -175,7 +175,7 @@ class TestDriftIntegration:
         X_new = build_features(df)
 
         ref = compute_reference_stats(X_ref)
-        result = detect_drift(X_new, ref, p_threshold=0.05)
+        result = detect_drift(X_new, ["Moderate"] * len(X_new), [0.95] * len(X_new), ref, p_threshold=0.05)
 
         assert not result["drift_detected"]
 
@@ -187,7 +187,7 @@ class TestDriftIntegration:
         X_new = build_features(large_df)
 
         ref = compute_reference_stats(X_ref)
-        result = detect_drift(X_new, ref, p_threshold=0.05)
+        result = detect_drift(X_new, ["Moderate"] * len(X_new), [0.95] * len(X_new), ref, p_threshold=0.05)
 
         assert result["drift_detected"]
 
@@ -220,6 +220,6 @@ class TestDriftIntegration:
         X = build_features(df)
         df_drift = _extract_drift_features(X)
 
-        assert df_drift.shape == (3, 3)
+        assert df_drift.shape == (3, 23)
         assert np.all(df_drift["tanimoto"] >= 0.0)
         assert np.all(df_drift["tanimoto"] <= 1.0)
