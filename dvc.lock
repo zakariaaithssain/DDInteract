@@ -9,12 +9,12 @@ stages:
       size: 18767043
     - path: src/build_features.py
       hash: md5
-      md5: 85ad974a9065ca4e7d46afbe9fa8cbd3
-      size: 1585
+      md5: 78fb2ff35e5323a82b2cc4701c362171
+      size: 1588
     - path: src/config.py
       hash: md5
-      md5: d277ef019ce718874f6ddf71ea430880
-      size: 1547
+      md5: fc2686e4461b5b7dfc6154c72d33cc4a
+      size: 1591
     - path: src/features.py
       hash: md5
       md5: 43a7717154a3d9d9f0d650b423eb4f8f
@@ -28,3 +28,47 @@ stages:
       hash: md5
       md5: dfc307fe6e7f9a3fdeb3bc7ebf37bfa9
       size: 875656
+  search_hyperparams:
+    cmd: uv run python -m src.search_hyperparams
+    deps:
+    - path: data/features.npy
+      hash: md5
+      md5: 4c44de15e9ecf3aad7343906ee940f2d
+      size: 466656552
+    - path: data/labels.npy
+      hash: md5
+      md5: dfc307fe6e7f9a3fdeb3bc7ebf37bfa9
+      size: 875656
+    - path: src/config.py
+      hash: md5
+      md5: fc2686e4461b5b7dfc6154c72d33cc4a
+      size: 1591
+    - path: src/evaluate.py
+      hash: md5
+      md5: 63fdca4a99626d0808616f669abcd035
+      size: 3026
+    - path: src/export_model.py
+      hash: md5
+      md5: 6825c78b095f0dc5f0d91e6e9aec585b
+      size: 2533
+    - path: src/features.py
+      hash: md5
+      md5: 43a7717154a3d9d9f0d650b423eb4f8f
+      size: 2675
+    - path: src/search_hyperparams.py
+      hash: md5
+      md5: bb7e6ba21a18c83922d0084f7be60f10
+      size: 10549
+    outs:
+    - path: models/best_model.joblib
+      hash: md5
+      md5: de5b1e2f5d2c7ab735772aef0b936b06
+      size: 10668959
+    - path: models/best_params.json
+      hash: md5
+      md5: e6c4a68a4ae04e193d90f2370e53c7b6
+      size: 279
+    - path: trials_leaderboard.json
+      hash: md5
+      md5: 334c4e6780cf82d1114aafffd7f49ff6
+      size: 5297
