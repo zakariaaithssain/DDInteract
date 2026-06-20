@@ -44,6 +44,7 @@ select = ["E", "F", "I", "N", "W"]
 
 [tool.mypy]
 ignore_missing_imports = true
+no_site_packages = true
 
 [[tool.mypy.overrides]]
 module = "src.features"
@@ -56,10 +57,6 @@ disable_error_code = ["attr-defined"]
 [[tool.mypy.overrides]]
 module = "src.export_model"
 disable_error_code = ["call-overload", "index"]
-
-[[tool.mypy.overrides]]
-module = "rdkit.*"
-ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
