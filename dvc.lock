@@ -13,8 +13,8 @@ stages:
       size: 1588
     - path: src/config.py
       hash: md5
-      md5: fc2686e4461b5b7dfc6154c72d33cc4a
-      size: 1591
+      md5: 11f1d85101c8fe3c3fa0304fca5ea370
+      size: 1682
     - path: src/features.py
       hash: md5
       md5: 43a7717154a3d9d9f0d650b423eb4f8f
@@ -41,34 +41,62 @@ stages:
       size: 875656
     - path: src/config.py
       hash: md5
-      md5: fc2686e4461b5b7dfc6154c72d33cc4a
-      size: 1591
+      md5: 11f1d85101c8fe3c3fa0304fca5ea370
+      size: 1682
     - path: src/evaluate.py
       hash: md5
-      md5: 63fdca4a99626d0808616f669abcd035
-      size: 3026
-    - path: src/export_model.py
-      hash: md5
-      md5: 6825c78b095f0dc5f0d91e6e9aec585b
-      size: 2533
+      md5: 8bad5f7199187a663ea68c75ebb8be5b
+      size: 3914
     - path: src/features.py
       hash: md5
       md5: 43a7717154a3d9d9f0d650b423eb4f8f
       size: 2675
     - path: src/search_hyperparams.py
       hash: md5
-      md5: 7cc0d1f4d448183e08f5e84ebcb666b8
-      size: 10545
+      md5: 1c76936144e1e2074efa7a3a4f1b4949
+      size: 9962
+    outs:
+    - path: models/best_params.json
+      hash: md5
+      md5: b5f02c446d9c979fe65e0eb14b9ae5a4
+      size: 149
+    - path: trials_leaderboard.json
+      hash: md5
+      md5: 6019074d2fdaa412153b90a8493ff8c4
+      size: 13967
+  train:
+    cmd: uv run python -m src.train
+    deps:
+    - path: data/features.npy
+      hash: md5
+      md5: 4c44de15e9ecf3aad7343906ee940f2d
+      size: 466656552
+    - path: data/labels.npy
+      hash: md5
+      md5: dfc307fe6e7f9a3fdeb3bc7ebf37bfa9
+      size: 875656
+    - path: models/best_params.json
+      hash: md5
+      md5: b5f02c446d9c979fe65e0eb14b9ae5a4
+      size: 149
+    - path: src/config.py
+      hash: md5
+      md5: 11f1d85101c8fe3c3fa0304fca5ea370
+      size: 1682
+    - path: src/evaluate.py
+      hash: md5
+      md5: 8bad5f7199187a663ea68c75ebb8be5b
+      size: 3914
+    - path: src/export_model.py
+      hash: md5
+      md5: b05530c6c4bb9807a9a29f76a90d8117
+      size: 2911
+    - path: src/train.py
+      hash: md5
+      md5: be6dac423b3c2dfd03eeefee387a8082
+      size: 4902
     outs:
     - path: models/best_model.joblib
       hash: md5
-      md5: de5b1e2f5d2c7ab735772aef0b936b06
-      size: 10668959
-    - path: models/best_params.json
-      hash: md5
-      md5: e6c4a68a4ae04e193d90f2370e53c7b6
-      size: 279
-    - path: trials_leaderboard.json
-      hash: md5
-      md5: 6d022b7835bb29f67df647c7bde91ac5
-      size: 10142
+      md5: 924c496b139fd1875e50a616e3ef5763
+      size: 142809681

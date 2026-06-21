@@ -54,7 +54,22 @@ class TestEvaluateAndLog:
         model, X, y = model_and_data
         with patch("src.evaluate.mlflow"):
             result = evaluate_and_log(model, X, y, "test_run", {"C": 1.0})
-        expected_keys = {"accuracy", "macro_f1", "weighted_f1", "qwk", "mae"}
+        expected_keys = {
+            "accuracy",
+            "macro_f1",
+            "weighted_f1",
+            "qwk",
+            "mae",
+            "Minor_precision",
+            "Minor_recall",
+            "Minor_f1",
+            "Moderate_precision",
+            "Moderate_recall",
+            "Moderate_f1",
+            "Major_precision",
+            "Major_recall",
+            "Major_f1",
+        }
         assert set(result.keys()) == expected_keys
 
     def test_returns_float_values(self, model_and_data):
@@ -77,18 +92,17 @@ class TestLogConfusionMatrix:
         with (
             patch("src.evaluate.plt") as mock_plt,
             patch("src.evaluate.mlflow") as mock_mlflow,
-            patch("src.evaluate.os.unlink"),
-            patch("src.evaluate.tempfile.NamedTemporaryFile") as mock_temp,
+            patch("src.evaluate.os.makedirs"),
+            patch("src.evaluate.os.path.join", return_value="/tmp/confusion_matrix.png"),
         ):
             mock_fig = MagicMock()
             mock_ax = MagicMock()
             mock_plt.subplots.return_value = (mock_fig, mock_ax)
-            mock_file = MagicMock()
-            mock_file.name = "/tmp/test.png"
-            mock_temp.return_value.__enter__.return_value = mock_file
             log_confusion_matrix(cm, "test_run", "{'C': 1.0}")
         mock_plt.subplots.assert_called_once()
-        mock_mlflow.log_artifact.assert_called_once()
+        mock_mlflow.log_artifact.assert_called_once_with(
+            "/tmp/confusion_matrix.png", artifact_path="confusion_matrices"
+        )
 
 
 class TestLoadOrBuildFeatures:
@@ -199,10 +213,26 @@ class TestObjective:
             patch("src.search_hyperparams.evaluate_and_log") as mock_eval,
             patch("src.search_hyperparams.mlflow"),
         ):
-            mock_eval.return_value = {"macro_f1": 0.85, "accuracy": 0.84, "weighted_f1": 0.83, "qwk": 0.7, "mae": 0.2}
+            mock_eval.return_value = {
+                "macro_f1": 0.85,
+                "accuracy": 0.84,
+                "weighted_f1": 0.83,
+                "qwk": 0.7,
+                "mae": 0.2,
+                "Minor_precision": 0.8,
+                "Minor_recall": 0.7,
+                "Minor_f1": 0.75,
+                "Moderate_precision": 0.9,
+                "Moderate_recall": 0.85,
+                "Moderate_f1": 0.87,
+                "Major_precision": 0.7,
+                "Major_recall": 0.75,
+                "Major_f1": 0.72,
+            }
             result = _objective_with_family(trial, X_train, y_train, X_test, y_test, 10, "RandomForest")
 
-        assert result == 0.85
+        expected = 0.4 * 0.8 + 0.4 * 0.75 + 0.2 * 0.85  # 0.79
+        assert result == expected
         assert mock_model.fit.call_count == 4  # 3 folds + 1 full train
 
     def test_objective_xgboost(self, trial_and_data):
@@ -216,10 +246,26 @@ class TestObjective:
             patch("src.search_hyperparams.evaluate_and_log") as mock_eval,
             patch("src.search_hyperparams.mlflow"),
         ):
-            mock_eval.return_value = {"macro_f1": 0.82, "accuracy": 0.80, "weighted_f1": 0.81, "qwk": 0.65, "mae": 0.25}
+            mock_eval.return_value = {
+                "macro_f1": 0.82,
+                "accuracy": 0.80,
+                "weighted_f1": 0.81,
+                "qwk": 0.65,
+                "mae": 0.25,
+                "Minor_precision": 0.75,
+                "Minor_recall": 0.65,
+                "Minor_f1": 0.70,
+                "Moderate_precision": 0.88,
+                "Moderate_recall": 0.82,
+                "Moderate_f1": 0.85,
+                "Major_precision": 0.65,
+                "Major_recall": 0.72,
+                "Major_f1": 0.68,
+            }
             result = _objective_with_family(trial, X_train, y_train, X_test, y_test, 10, "XGBoost")
 
-        assert result == 0.82
+        expected = 0.4 * 0.75 + 0.4 * 0.72 + 0.2 * 0.82  # 0.752
+        assert result == expected
         mock_model.fit.assert_called_once()
 
 
@@ -235,6 +281,7 @@ class TestSearchHyperparamsMain:
             "params": {"n_estimators": 100, "max_depth": 8},
             "run_id": f"run_{number}",
             "metrics": {"accuracy": 0.9, "macro_f1": value, "weighted_f1": 0.88, "qwk": 0.7, "mae": 0.2},
+            "composite": 0.85,
         }
         trial.params = {"rf_n_estimators": 100, "rf_max_depth": 8}
         return trial
@@ -302,6 +349,7 @@ class TestTrainMain:
 
         mock_model = MagicMock()
         mock_model.predict.return_value = np.zeros(len(X_test))
+        mock_model.predict_proba.return_value = np.column_stack([np.full(len(X_test), 0.2)] * 3)
 
         mock_sig = MagicMock()
         mock_sig.to_dict.return_value = {"inputs": {}, "outputs": {}}
@@ -309,12 +357,34 @@ class TestTrainMain:
         with (
             patch("src.train.json.load", return_value={"family": "RandomForest", "n_estimators": 100}),
             patch("src.train.np.load", side_effect=[X, y]),
-            patch("src.train.train_test_split", return_value=(X_train, X_test, y_train, y_test)),
+            patch(
+                "src.train.train_test_split",
+                side_effect=[(X_train, X_test, y_train, y_test), (X_train, np.zeros(20), y_train, np.zeros(20))],
+            ),
             patch("src.train.RandomForestClassifier", return_value=mock_model),
             patch(
                 "src.train.evaluate_and_log",
-                return_value={"macro_f1": 0.85, "accuracy": 0.84, "weighted_f1": 0.83, "qwk": 0.7, "mae": 0.2},
+                return_value={
+                    "macro_f1": 0.85,
+                    "accuracy": 0.84,
+                    "weighted_f1": 0.83,
+                    "qwk": 0.7,
+                    "mae": 0.2,
+                    "Minor_precision": 0.8,
+                    "Minor_recall": 0.7,
+                    "Minor_f1": 0.75,
+                    "Moderate_precision": 0.9,
+                    "Moderate_recall": 0.85,
+                    "Moderate_f1": 0.87,
+                    "Major_precision": 0.7,
+                    "Major_recall": 0.75,
+                    "Major_f1": 0.72,
+                },
             ),
+            patch("src.train.optimize_thresholds", return_value={"t_major": 0.25, "t_minor": 0.80}),
+            patch("src.train.save_thresholds"),
+            patch("src.train.evaluate_clinical_score", return_value=0.85),
+            patch("src.train.predict_with_thresholds", return_value=np.zeros(20, dtype=int)),
             patch("src.train.joblib.dump"),
             patch("src.train.mlflow") as mock_mlflow,
             patch("src.train.mlflow.models.infer_signature", return_value=mock_sig),
@@ -346,7 +416,7 @@ class TestRegisterBestModel:
         mock_client.return_value.set_model_version_tag.assert_any_call(
             REGISTRY_NAME, "42", "family", "LogisticRegression"
         )
-        mock_client.return_value.set_model_version_tag.assert_any_call(REGISTRY_NAME, "42", "macro_f1", "0.85")
+        mock_client.return_value.set_model_version_tag.assert_any_call(REGISTRY_NAME, "42", "composite", "0.85")
         mock_client.return_value.set_model_version_tag.assert_any_call(REGISTRY_NAME, "42", "best_trial_number", "5")
 
     def test_logs_warning_on_failure(self):

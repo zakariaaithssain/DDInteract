@@ -19,6 +19,7 @@ LABEL_CACHE = f"{DATA_DIR}/labels.npy"
 MODEL_PATH = f"{MODELS_DIR}/model.joblib"
 BEST_MODEL_PATH = f"{MODELS_DIR}/best_model.joblib"
 BEST_PARAMS_PATH = f"{MODELS_DIR}/best_params.json"
+THRESHOLDS_PATH = f"{MODELS_DIR}/thresholds.json"
 
 # --- Drift ---
 DRIFT_REFERENCE_PATH = f"{MODELS_DIR}/drift_reference.json"
@@ -32,10 +33,11 @@ LOG_PATH = f"{LOGS_DIR}/pipeline.log"
 TRIALS_LEADERBOARD_PATH = "trials_leaderboard.json"
 
 # --- Training metadata ---
-EXPERIMENT_NAME = "DDI_Structural_Severity"
+EXPERIMENT_NAME = "Composite-DDI-Severity"
 TEST_SIZE = 0.2
 CLASS_NAMES = ["Minor", "Moderate", "Major"]
 REGISTRY_NAME = "DDI-Severity"
+STUDY_NAME = "Composite-DDI-Severity-TPE"
 
 # --- Logger singleton ---
 Path(LOGS_DIR).mkdir(exist_ok=True)

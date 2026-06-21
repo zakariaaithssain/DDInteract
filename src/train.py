@@ -25,10 +25,17 @@ from src.config import (
     LABEL_CACHE,
     MODELS_DIR,
     TEST_SIZE,
+    THRESHOLDS_PATH,
     logger,
 )
 from src.evaluate import evaluate_and_log
 from src.export_model import register_best_model
+from src.threshold_optimizer import (
+    evaluate_clinical_score,
+    optimize_thresholds,
+    predict_with_thresholds,
+    save_thresholds,
+)
 
 RANDOM_STATE: int = 42
 
@@ -42,7 +49,7 @@ def main() -> None:
     if experiment is not None:
         client.set_experiment_tag(experiment.experiment_id, "project", "DDI_Severity_Predictor")
         client.set_experiment_tag(experiment.experiment_id, "task", "multi_class_classification")
-        client.set_experiment_tag(experiment.experiment_id, "metrics_primary", "macro_f1")
+        client.set_experiment_tag(experiment.experiment_id, "metrics_primary", "composite")
         client.set_experiment_tag(experiment.experiment_id, "model_families", "RandomForest,XGBoost")
 
     with open(BEST_PARAMS_PATH) as f:
@@ -59,12 +66,25 @@ def main() -> None:
     )
     logger.info("Full train/test split: %d train, %d test", len(X_train), len(X_test))
 
+    X_train_sub, X_val, y_train_sub, y_val = train_test_split(
+        X_train, y_train, test_size=0.2, random_state=RANDOM_STATE, stratify=y_train
+    )
+    logger.info("Sub-split: %d train, %d val for threshold optimization", len(X_train_sub), len(X_val))
+
     if best_family == "RandomForest":
-        model = RandomForestClassifier(**best_params)
+        model = RandomForestClassifier(**best_params, class_weight="balanced")
+        model.fit(X_train, y_train)
     else:
         model = XGBClassifier(**best_params, tree_method="hist", n_jobs=-1, verbosity=0)
-    model.fit(X_train, y_train)
+        classes, counts = np.unique(y_train, return_counts=True)
+        class_weights = len(y_train) / (len(classes) * counts)
+        sample_weight = class_weights[y_train]
+        model.fit(X_train, y_train, sample_weight=sample_weight)
     logger.info("Trained %s on full training set", best_family)
+
+    val_probs = model.predict_proba(X_val)
+    thresholds = optimize_thresholds(y_val, val_probs, n_trials=200)
+    save_thresholds(thresholds)
 
     joblib.dump(model, BEST_MODEL_PATH)
     logger.info("Model saved to %s", BEST_MODEL_PATH)
@@ -73,8 +93,18 @@ def main() -> None:
         mlflow.set_tag("best_overall", "true")
         mlflow.set_tag("model_family", best_family)
         mlflow.log_params(best_params)
+        mlflow.log_params({"t_major": thresholds["t_major"], "t_minor": thresholds["t_minor"]})
 
         metrics = evaluate_and_log(model, X_test, y_test, "best_overall", best_params, output_dir=MODELS_DIR)
+
+        composite = 0.4 * metrics["Minor_precision"] + 0.4 * metrics["Major_recall"] + 0.2 * metrics["Moderate_recall"]
+        mlflow.log_metric("composite", composite)
+
+        test_probs = model.predict_proba(X_test)
+        test_preds_thresholded = predict_with_thresholds(test_probs, thresholds["t_major"], thresholds["t_minor"])
+        clinical_score = evaluate_clinical_score(y_test, test_preds_thresholded)
+        mlflow.log_metric("clinical_score", clinical_score)
+        logger.info("Clinical score (thresholded test): %.4f", clinical_score)
 
         signature = mlflow.models.infer_signature(X_test[:5], model.predict(X_test[:5]))
         mlflow.sklearn.log_model(model, name="model", signature=signature)
@@ -84,14 +114,14 @@ def main() -> None:
         mlflow.log_artifact("/tmp/model_signature.json")
 
         mlflow.log_artifact(BEST_PARAMS_PATH)
+        mlflow.log_artifact(THRESHOLDS_PATH)
 
     logger.info("MLflow run: %s", best_run.info.run_id)
 
-    macro_f1 = metrics["macro_f1"]
     register_best_model(
         best_run.info.run_id,
         best_family,
-        macro_f1,
+        composite,
         best_trial_number=None,
     )
 

@@ -7,23 +7,21 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 
-from src.config import BEST_MODEL_PATH, MODEL_PATH, MODELS_DIR, REGISTRY_NAME, logger
-
-EXPERIMENT_NAME: str = "DDI_Structural_Severity"
+from src.config import BEST_MODEL_PATH, EXPERIMENT_NAME, MODEL_PATH, MODELS_DIR, REGISTRY_NAME, logger
 
 
-def register_best_model(run_id: str, family: str, macro_f1: float, best_trial_number: int | None = None) -> None:
+def register_best_model(run_id: str, family: str, composite: float, best_trial_number: int | None = None) -> None:
     model_uri = f"runs:/{run_id}/model"
     try:
         result = mlflow.register_model(model_uri, REGISTRY_NAME)
         client = mlflow.MlflowClient()
         client.set_registered_model_alias(REGISTRY_NAME, "production", result.version)
         client.set_model_version_tag(REGISTRY_NAME, result.version, "family", family)
-        client.set_model_version_tag(REGISTRY_NAME, result.version, "macro_f1", str(macro_f1))
+        client.set_model_version_tag(REGISTRY_NAME, result.version, "composite", str(composite))
         if best_trial_number is not None:
             client.set_model_version_tag(REGISTRY_NAME, result.version, "best_trial_number", str(best_trial_number))
         logger.info(
-            "Registered %s as version %s of '%s' (macro_f1=%.4f)", family, result.version, REGISTRY_NAME, macro_f1
+            "Registered %s as version %s of '%s' (composite=%.4f)", family, result.version, REGISTRY_NAME, composite
         )
     except Exception as e:
         logger.warning("Model registration failed (MLflow registry may be local-only): %s", e)
@@ -58,11 +56,11 @@ def main() -> None:
         mlflow.set_experiment(EXPERIMENT_NAME)
         runs = mlflow.search_runs()
         runs = runs[~runs["tags.mlflow.runName"].str.startswith("best_", na=False)]
-        runs = runs[pd.notna(runs["metrics.macro_f1"])]
+        runs = runs[pd.notna(runs["metrics.composite"])]
         if runs.empty:
             logger.error("No completed training runs found in MLflow")
             return
-        best = runs.loc[runs["metrics.macro_f1"].idxmax()]
+        best = runs.loc[runs["metrics.composite"].idxmax()]
         run_id: str = best["run_id"]
         model_name: str = best["tags.mlflow.runName"]
         logger.info("Loading best model: %s (run_id=%s)", model_name, run_id)

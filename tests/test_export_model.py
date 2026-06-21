@@ -11,7 +11,7 @@ class TestExportMain:
             {
                 "run_id": ["abc123"],
                 "tags.mlflow.runName": ["LogisticRegression_C-0.1"],
-                "metrics.macro_f1": [0.85],
+                "metrics.composite": [0.85],
             }
         )
         mock_model = MagicMock()
@@ -34,7 +34,7 @@ class TestExportMain:
             {
                 "run_id": ["def456"],
                 "tags.mlflow.runName": ["RandomForest_100_8"],
-                "metrics.macro_f1": [0.82],
+                "metrics.composite": [0.82],
             }
         )
 
@@ -57,7 +57,7 @@ class TestExportMain:
             {
                 "run_id": ["ghi789"],
                 "tags.mlflow.runName": ["XGBoost"],
-                "metrics.macro_f1": [0.88],
+                "metrics.composite": [0.88],
             }
         )
         mock_model = MagicMock()
@@ -82,7 +82,7 @@ class TestExportMain:
             {
                 "run_id": pd.Series(dtype=str),
                 "tags.mlflow.runName": pd.Series(dtype=str),
-                "metrics.macro_f1": pd.Series(dtype=float),
+                "metrics.composite": pd.Series(dtype=float),
             }
         )
 

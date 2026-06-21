@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDI Drift Monitor</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+  }
+  .container { width: 100%; max-width: 560px; }
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #86868b;
+    margin-bottom: 32px;
+  }
+  .nav-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .nav-link {
+    font-size: 13px;
+    color: #0071e3;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1.5px solid #d2d2d7;
+    transition: border-color .15s, background .15s;
+  }
+  .nav-link:hover { border-color: #0071e3; background: #f0f7ff; }
+  .nav-link.active { background: #0071e3; color: #fff; border-color: #0071e3; }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6e6e73;
+    letter-spacing: 0.01em;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .status-label { font-size: 14px; font-weight: 500; }
+  .status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 12px;
+  }
+  .status-badge.active { background: #e8f5e9; color: #2e7d32; }
+  .status-badge.inactive { background: #fce4ec; color: #c62828; }
+  .sample-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #6e6e73;
+    margin-bottom: 6px;
+  }
+  .progress-track {
+    width: 100%;
+    height: 8px;
+    background: #e8e8ed;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #0071e3;
+    border-radius: 4px;
+    transition: width .4s ease;
+  }
+  .sample-count { font-size: 12px; color: #86868b; text-align: right; }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .stat-box {
+    background: #f5f5f7;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-box .value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d1d1f;
+  }
+  .stat-box .label {
+    font-size: 11px;
+    color: #86868b;
+    margin-top: 2px;
+  }
+  .stat-box .value.good { color: #34c759; }
+  .stat-box .value.warn { color: #ff9500; }
+  .stat-box .value.bad { color: #ff3b30; }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 10px;
+  }
+  .bar-row .cls-label {
+    width: 64px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6e6e73;
+    flex-shrink: 0;
+  }
+  .bar-row .bar-track {
+    flex: 1;
+    height: 8px;
+    background: #e8e8ed;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .bar-row .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .4s ease;
+  }
+  .bar-row .bar-fill.Minor { background: #34c759; }
+  .bar-row .bar-fill.Moderate { background: #ff9500; }
+  .bar-row .bar-fill.Major { background: #ff3b30; }
+  .bar-row .bar-count { font-size: 13px; color: #1d1d1f; width: 30px; text-align: right; flex-shrink: 0; }
+  .drift-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  .drift-badge.detected { background: #fce4ec; color: #c62828; }
+  .drift-badge.clean { background: #e8f5e9; color: #2e7d32; }
+  .drift-badge.pending { background: #e3f2fd; color: #1565c0; }
+  .type-result { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e8e8ed; }
+  .type-result:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .type-result h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .type-result .detail {
+    font-size: 12px;
+    color: #6e6e73;
+    line-height: 1.6;
+  }
+  .type-result .detail strong { color: #1d1d1f; }
+  .empty-state {
+    text-align: center;
+    padding: 20px;
+    color: #86868b;
+    font-size: 13px;
+  }
+  button {
+    width: 100%;
+    padding: 11px;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: 10px;
+    background: #0071e3;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+    margin-top: 4px;
+  }
+  button:hover { background: #0077ed; }
+  button:active { background: #006edb; }
+  button:disabled { background: #aeaeb2; cursor: not-allowed; }
+  .error {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #fef0ef;
+    color: #c41e3a;
+    border-radius: 10px;
+    font-size: 13px;
+    display: none;
+  }
+  .loading {
+    text-align: center;
+    padding: 16px;
+    color: #86868b;
+    font-size: 14px;
+    display: none;
+  }
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid #d2d2d7;
+    border-top-color: #0071e3;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .last-check-label { font-size: 12px; color: #86868b; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Drift Monitor</h1>
+  <p class="subtitle">Real-time data drift monitoring</p>
+
+  <div class="nav-row">
+    <a href="/" class="nav-link">Predict</a>
+    <a href="/drift" class="nav-link active">Drift</a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Status</div>
+    <div class="status-row">
+      <span class="status-label">Drift Monitoring</span>
+      <span class="status-badge" id="status-badge">Inactive</span>
+    </div>
+    <div>
+      <div class="sample-header">
+        <span>Samples collected</span>
+        <span id="sample-text">0 / 100</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="label-card">
+    <div class="card-title">Label Distribution</div>
+    <div id="label-bars"></div>
+  </div>
+
+  <div class="card" id="confidence-card">
+    <div class="card-title">Prediction Confidence</div>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="value" id="mean-conf">-</div>
+        <div class="label">Mean</div>
+      </div>
+      <div class="stat-box">
+        <div class="value" id="median-conf">-</div>
+        <div class="label">Median</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="drift-result-card">
+    <div class="card-title">Drift Types</div>
+    <div id="drift-result-content">
+      <div class="empty-state">No drift check performed yet.<br>Collect 100 samples to trigger a check.</div>
+    </div>
+  </div>
+
+  <button id="refresh-btn" onclick="refresh()">Refresh</button>
+  <div class="loading" id="loading"><span class="spinner"></span>Loading…</div>
+  <div class="error" id="error"></div>
+</div>
+
+<script>
+async function refresh() {
+  const errorEl = document.getElementById('error');
+  const loadingEl = document.getElementById('loading');
+  const btn = document.getElementById('refresh-btn');
+
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  loadingEl.style.display = 'block';
+
+  try {
+    const res = await fetch('/drift/data');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Failed to fetch drift status');
+    displayDrift(data);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    loadingEl.style.display = 'none';
+  }
+}
+
+function displayDrift(data) {
+  // Status badge
+  const badge = document.getElementById('status-badge');
+  if (data.monitoring_active) {
+    badge.textContent = 'Active';
+    badge.className = 'status-badge active';
+  } else {
+    badge.textContent = 'Inactive';
+    badge.className = 'status-badge inactive';
+  }
+
+  // Samples collected
+  const collected = data.samples_collected;
+  const interval = data.check_interval;
+  document.getElementById('sample-text').textContent = `${collected} / ${interval}`;
+  document.getElementById('progress-fill').style.width = `${Math.min((collected / interval) * 100, 100)}%`;
+
+  // Label distribution
+  const labelBars = document.getElementById('label-bars');
+  if (data.label_counts) {
+    const total = Object.values(data.label_counts).reduce((a, b) => a + b, 0);
+    labelBars.innerHTML = '';
+    for (const [cls, count] of Object.entries(data.label_counts)) {
+      const pct = total > 0 ? (count / total) * 100 : 0;
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <span class="cls-label">${cls}</span>
+        <div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>
+        <span class="bar-count">${count}</span>
+      `;
+      labelBars.appendChild(row);
+    }
+  } else {
+    labelBars.innerHTML = '<div class="empty-state">No predictions collected yet.</div>';
+  }
+
+  // Confidence
+  const meanConfEl = document.getElementById('mean-conf');
+  const medianConfEl = document.getElementById('median-conf');
+  if (data.mean_confidence !== null) {
+    meanConfEl.textContent = (data.mean_confidence * 100).toFixed(1) + '%';
+    meanConfEl.className = 'value ' + confidenceColor(data.mean_confidence);
+  } else {
+    meanConfEl.textContent = '-';
+    meanConfEl.className = 'value';
+  }
+  const resultContent = document.getElementById('drift-result-content');
+  const cov = data.covariate_shift;
+  const lab = data.label_shift;
+  const con = data.concept_drift;
+  let html = '';
+
+  // Covariate
+  html += '<div class="type-result"><h4>Covariate Shift</h4><div class="detail">';
+  if (cov.status === 'checked') {
+    const d = cov.details || {};
+    html += cov.drift_detected ? '<span class="drift-badge detected">Drifted</span> ' : '<span class="drift-badge clean">OK</span> ';
+    if (d.drift_share !== undefined) html += `<strong>Drift share:</strong> ${(d.drift_share * 100).toFixed(0)}% `;
+    if (d.drifted_columns && d.drifted_columns.length > 0) html += `&middot; <strong>Drifted columns:</strong> ${d.drifted_columns.length} `;
+    if (d.n_new_samples !== undefined) html += `&middot; <strong>Samples:</strong> ${d.n_new_samples}`;
+  } else {
+    html += '<span class="drift-badge pending">Monitoring</span> Waiting for 100 samples…';
+  }
+  html += '</div></div>';
+
+  // Label
+  html += '<div class="type-result"><h4>Label Shift</h4><div class="detail">';
+  if (lab.status === 'checked') {
+    const d = lab.details || {};
+    html += lab.drift_detected ? '<span class="drift-badge detected">Shifted</span> ' : '<span class="drift-badge clean">OK</span> ';
+    if (d.p_value !== undefined && d.p_value !== null) html += `<strong>p-value:</strong> ${d.p_value.toFixed(4)} `;
+    if (d.n_samples) html += `&middot; <strong>Samples:</strong> ${d.n_samples}`;
+  } else {
+    html += '<span class="drift-badge pending">Monitoring</span> Waiting for 100 samples…';
+  }
+  html += '</div></div>';
+
+  // Concept
+  html += '<div class="type-result"><h4>Concept Drift</h4><div class="detail">';
+  if (con.status === 'checked') {
+    const d = con.details || {};
+    html += con.drift_detected ? '<span class="drift-badge detected">Drifted</span> ' : '<span class="drift-badge clean">OK</span> ';
+    if (d.mean_confidence !== undefined) html += `<strong>Mean conf:</strong> ${(d.mean_confidence * 100).toFixed(1)}% `;
+    if (d.median_confidence !== undefined) html += `&middot; <strong>Median:</strong> ${(d.median_confidence * 100).toFixed(1)}% `;
+    if (d.low_confidence_share !== undefined) html += `&middot; <strong>Low conf:</strong> ${(d.low_confidence_share * 100).toFixed(0)}%`;
+  } else {
+    html += '<span class="drift-badge pending">Monitoring</span> Waiting for 100 samples…';
+  }
+  html += '</div></div>';
+
+  resultContent.innerHTML = html;
+
+  // Median confidence from concept drift details
+  if (con.status === 'checked' && con.details && con.details.median_confidence !== undefined) {
+    medianConfEl.textContent = (con.details.median_confidence * 100).toFixed(1) + '%';
+  } else {
+    medianConfEl.textContent = '-';
+  }
+</script>
+</body>
+</html>

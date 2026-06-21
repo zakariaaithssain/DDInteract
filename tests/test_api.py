@@ -102,12 +102,14 @@ class TestDriftMonitoring:
         api.feature_buffer = []
         api.last_drift_result = None
 
-        resp = client.get("/drift")
+        resp = client.get("/drift/data")
         assert resp.status_code == 200
         data = resp.json()
         assert data["monitoring_active"] is False
         assert data["samples_collected"] == 0
-        assert data["last_result"] is None
+        assert data["covariate_shift"]["status"] == "pending"
+        assert data["label_shift"]["status"] == "pending"
+        assert data["concept_drift"]["status"] == "pending"
 
     def test_drift_endpoint_shows_active_monitoring(self, client):
         from src import api
@@ -116,7 +118,7 @@ class TestDriftMonitoring:
         api.feature_buffer = []
         api.last_drift_result = None
 
-        resp = client.get("/drift")
+        resp = client.get("/drift/data")
         assert resp.status_code == 200
         data = resp.json()
         assert data["monitoring_active"] is True

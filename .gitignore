@@ -15,8 +15,8 @@ wheels/
 .env
 
 # MLflow
-mlflow.db
 mlruns/
+mlflow.db*
 
 # Generated model artifacts
 models/

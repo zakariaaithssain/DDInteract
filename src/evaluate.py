@@ -1,5 +1,4 @@
 import os
-import tempfile
 from typing import Any
 
 import matplotlib
@@ -49,14 +48,13 @@ def log_confusion_matrix(cm: np.ndarray, run_name: str, params_str: str, output_
             ax.text(
                 j, i, str(cm[i, j]), ha="center", va="center", color="white" if cm[i, j] > cm.max() / 2 else "black"
             )
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        fig.savefig(f.name, bbox_inches="tight")
-        mlflow.log_artifact(f.name, artifact_path="confusion_matrices")
-        if output_dir is not None:
-            os.makedirs(output_dir, exist_ok=True)
-            fig.savefig(os.path.join(output_dir, "confusion_matrix.png"), bbox_inches="tight")
+    cm_path = os.path.join(output_dir, "confusion_matrix.png") if output_dir else "/tmp/confusion_matrix.png"
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    fig.savefig(cm_path, bbox_inches="tight")
+    mlflow.log_artifact(cm_path, artifact_path="confusion_matrices")
+    mlflow.log_figure(fig, "confusion_matrix.png")
     plt.close(fig)
-    os.unlink(f.name)
 
 
 # --- Evaluation ---
@@ -106,4 +104,19 @@ def evaluate_and_log(
         with open(os.path.join(output_dir, "classification_report.txt"), "w") as f:
             f.write(report)
 
-    return {"accuracy": acc, "macro_f1": macro_f1, "weighted_f1": weighted_f1, "qwk": qwk, "mae": mae}
+    return {
+        "accuracy": acc,
+        "macro_f1": macro_f1,
+        "weighted_f1": weighted_f1,
+        "qwk": qwk,
+        "mae": mae,
+        "Minor_precision": prec[0],
+        "Minor_recall": rec[0],
+        "Minor_f1": f1[0],
+        "Moderate_precision": prec[1],
+        "Moderate_recall": rec[1],
+        "Moderate_f1": f1[1],
+        "Major_precision": prec[2],
+        "Major_recall": rec[2],
+        "Major_f1": f1[2],
+    }

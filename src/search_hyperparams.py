@@ -13,7 +13,7 @@ import mlflow
 import numpy as np
 import optuna
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score
+from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from xgboost import XGBClassifier
 
@@ -24,6 +24,7 @@ from src.config import (
     LABEL_CACHE,
     LOGS_DIR,
     MODELS_DIR,
+    STUDY_NAME,
     TEST_SIZE,
     TRIALS_LEADERBOARD_PATH,
     logger,
@@ -101,10 +102,11 @@ def objective(
             fold_model = RandomForestClassifier(**params)
             fold_model.fit(X_fold_train, y_fold_train)
             preds = fold_model.predict(X_fold_val)
-            fold_f1 = f1_score(y_fold_val, preds, average="macro")
+            prec, rec, f1, _ = precision_recall_fscore_support(y_fold_val, preds, labels=[0, 1, 2])
+            fold_score = 0.4 * prec[0] + 0.4 * rec[2] + 0.2 * rec[1]
 
-            fold_scores.append(fold_f1)
-            trial.report(fold_f1, step)
+            fold_scores.append(fold_score)
+            trial.report(fold_score, step)
             if trial.should_prune():
                 raise optuna.TrialPruned()
 
@@ -121,6 +123,10 @@ def objective(
         cv_mean = cv_scores.mean()
         cv_std = cv_scores.std()
 
+        classes, counts = np.unique(y_train, return_counts=True)
+        class_weights = len(y_train) / (len(classes) * counts)
+        sample_weight = class_weights[y_train]
+
         try:
             from optuna_integration.xgboost import XGBoostPruningCallback
 
@@ -131,6 +137,7 @@ def objective(
         model.fit(
             X_train,
             y_train,
+            sample_weight=sample_weight,
             eval_set=[(X_test, y_test)],
             verbose=False,
         )
@@ -164,7 +171,11 @@ def objective(
     trial.set_user_attr("family", family)
     trial.set_user_attr("metrics", metrics)
 
-    return metrics["macro_f1"]
+    composite = 0.4 * metrics["Minor_precision"] + 0.4 * metrics["Major_recall"] + 0.2 * metrics["Moderate_recall"]
+    trial.set_user_attr("composite", composite)
+    mlflow.log_metric("composite", composite)
+
+    return composite
 
 
 def main() -> None:
@@ -177,7 +188,7 @@ def main() -> None:
     if experiment is not None:
         client.set_experiment_tag(experiment.experiment_id, "project", "DDI_Severity_Predictor")
         client.set_experiment_tag(experiment.experiment_id, "task", "multi_class_classification")
-        client.set_experiment_tag(experiment.experiment_id, "metrics_primary", "macro_f1")
+        client.set_experiment_tag(experiment.experiment_id, "metrics_primary", "composite")
         client.set_experiment_tag(experiment.experiment_id, "model_families", "RandomForest,XGBoost")
 
     X = np.load(FEATURE_CACHE)
@@ -201,7 +212,7 @@ def main() -> None:
 
     storage = f"sqlite:///{MODELS_DIR}/optuna_study.db"
     study = optuna.create_study(
-        study_name="DDI_Severity_TPE",
+        study_name=STUDY_NAME,
         direction="maximize",
         sampler=sampler,
         pruner=pruner,
@@ -223,6 +234,7 @@ def main() -> None:
                 {
                     "trial_number": t.number,
                     "family": attrs.get("family"),
+                    "composite": attrs.get("composite"),
                     **attrs.get("metrics", {}),
                 }
             )
@@ -230,27 +242,27 @@ def main() -> None:
     best_trial = study.best_trial
     best_family: str = best_trial.user_attrs["family"]
     assert best_trial.value is not None
-    best_macro_f1: float = best_trial.value
+    best_composite: float = best_trial.value
     best_params = _reconstruct_params(dict(best_trial.params), best_family)
 
-    logger.info("Best trial: %s (macro_f1=%.4f) — %s", best_trial.number, best_macro_f1, best_family)
+    logger.info("Best trial: %s (composite=%.4f) — %s", best_trial.number, best_composite, best_family)
 
     with open(BEST_PARAMS_PATH, "w") as f:
         json.dump({"family": best_family, **best_params}, f, indent=2)
     logger.info("Best params saved to %s", BEST_PARAMS_PATH)
 
-    results_summary = sorted(all_results, key=lambda x: -x.get("macro_f1", 0))
+    results_summary = sorted(all_results, key=lambda x: -(x.get("composite") or 0))
 
-    logger.info("--- Results (sorted by macro F1) ---")
+    logger.info("--- Results (sorted by composite) ---")
     for r in results_summary:
         logger.info(
-            "Trial %-3d %-15s  acc=%.4f  macro_f1=%.4f  qwk=%.4f  mae=%.4f",
+            "Trial %-3d %-15s  composite=%.4f  Minor_prec=%.4f  Major_rec=%.4f  Mod_f1=%.4f",
             r.get("trial_number", -1),
             r.get("family", "?"),
-            r.get("accuracy", 0),
-            r.get("macro_f1", 0),
-            r.get("qwk", 0),
-            r.get("mae", 0),
+            r.get("composite", 0),
+            r.get("Minor_precision", 0),
+            r.get("Major_recall", 0),
+            r.get("Moderate_f1", 0),
         )
 
     with open(TRIALS_LEADERBOARD_PATH, "w") as f:
