@@ -13,10 +13,10 @@ import mlflow
 import numpy as np
 import optuna
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from xgboost import XGBClassifier
 
+from src.clinical_metrics import cost_breakdown, expected_cost
 from src.config import (
     BEST_PARAMS_PATH,
     EXPERIMENT_NAME,
@@ -92,7 +92,7 @@ def objective(
         params = suggest_rf_params(trial)
 
         skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
-        fold_scores: list[float] = []
+        fold_costs: list[float] = []
         for step, (train_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
             X_fold_train = X_train[train_idx]
             y_fold_train = y_train[train_idx]
@@ -102,16 +102,15 @@ def objective(
             fold_model = RandomForestClassifier(**params)
             fold_model.fit(X_fold_train, y_fold_train)
             preds = fold_model.predict(X_fold_val)
-            prec, rec, f1, _ = precision_recall_fscore_support(y_fold_val, preds, labels=[0, 1, 2])
-            fold_score = 0.4 * prec[0] + 0.4 * rec[2] + 0.2 * rec[1]
+            fold_cost = expected_cost(y_fold_val, preds)
 
-            fold_scores.append(fold_score)
-            trial.report(fold_score, step)
+            fold_costs.append(fold_cost)
+            trial.report(fold_cost, step)
             if trial.should_prune():
                 raise optuna.TrialPruned()
 
-        cv_mean = float(np.mean(fold_scores))
-        cv_std = float(np.std(fold_scores))
+        cv_mean = float(np.mean(fold_costs))
+        cv_std = float(np.std(fold_costs))
 
         model = RandomForestClassifier(**params)
         model.fit(X_train, y_train)
@@ -166,16 +165,18 @@ def objective(
 
         metrics = evaluate_and_log(model, X_test, y_test, run_name, _clean_params(params))
 
+        y_pred = model.predict(X_test)
+        cost = expected_cost(y_test, y_pred)
+        mlflow.log_metric("expected_cost", cost)
+        mlflow.log_metrics(cost_breakdown(y_test, y_pred))
+
         trial.set_user_attr("run_id", run.info.run_id)
 
     trial.set_user_attr("family", family)
     trial.set_user_attr("metrics", metrics)
+    trial.set_user_attr("expected_cost", cost)
 
-    composite = 0.4 * metrics["Minor_precision"] + 0.4 * metrics["Major_recall"] + 0.2 * metrics["Moderate_recall"]
-    trial.set_user_attr("composite", composite)
-    mlflow.log_metric("composite", composite)
-
-    return composite
+    return cost
 
 
 def main() -> None:
@@ -188,7 +189,7 @@ def main() -> None:
     if experiment is not None:
         client.set_experiment_tag(experiment.experiment_id, "project", "DDI_Severity_Predictor")
         client.set_experiment_tag(experiment.experiment_id, "task", "multi_class_classification")
-        client.set_experiment_tag(experiment.experiment_id, "metrics_primary", "composite")
+        client.set_experiment_tag(experiment.experiment_id, "metrics_primary", "expected_cost")
         client.set_experiment_tag(experiment.experiment_id, "model_families", "RandomForest,XGBoost")
 
     X = np.load(FEATURE_CACHE)
@@ -213,7 +214,7 @@ def main() -> None:
     storage = f"sqlite:///{MODELS_DIR}/optuna_study.db"
     study = optuna.create_study(
         study_name=STUDY_NAME,
-        direction="maximize",
+        direction="minimize",
         sampler=sampler,
         pruner=pruner,
         storage=storage,
@@ -234,7 +235,7 @@ def main() -> None:
                 {
                     "trial_number": t.number,
                     "family": attrs.get("family"),
-                    "composite": attrs.get("composite"),
+                    "expected_cost": attrs.get("expected_cost"),
                     **attrs.get("metrics", {}),
                 }
             )
@@ -242,24 +243,24 @@ def main() -> None:
     best_trial = study.best_trial
     best_family: str = best_trial.user_attrs["family"]
     assert best_trial.value is not None
-    best_composite: float = best_trial.value
+    best_cost: float = best_trial.value
     best_params = _reconstruct_params(dict(best_trial.params), best_family)
 
-    logger.info("Best trial: %s (composite=%.4f) — %s", best_trial.number, best_composite, best_family)
+    logger.info("Best trial: %s (expected_cost=%.4f) — %s", best_trial.number, best_cost, best_family)
 
     with open(BEST_PARAMS_PATH, "w") as f:
         json.dump({"family": best_family, **best_params}, f, indent=2)
     logger.info("Best params saved to %s", BEST_PARAMS_PATH)
 
-    results_summary = sorted(all_results, key=lambda x: -(x.get("composite") or 0))
+    results_summary = sorted(all_results, key=lambda x: x.get("expected_cost", float("inf")))
 
-    logger.info("--- Results (sorted by composite) ---")
+    logger.info("--- Results (sorted by expected_cost, ascending) ---")
     for r in results_summary:
         logger.info(
-            "Trial %-3d %-15s  composite=%.4f  Minor_prec=%.4f  Major_rec=%.4f  Mod_f1=%.4f",
+            "Trial %-3d %-15s  cost=%.4f  Minor_prec=%.4f  Major_rec=%.4f  Mod_f1=%.4f",
             r.get("trial_number", -1),
             r.get("family", "?"),
-            r.get("composite", 0),
+            r.get("expected_cost", 0),
             r.get("Minor_precision", 0),
             r.get("Major_recall", 0),
             r.get("Moderate_f1", 0),

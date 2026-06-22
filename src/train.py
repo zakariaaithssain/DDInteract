@@ -31,9 +31,7 @@ from src.config import (
 from src.evaluate import evaluate_and_log
 from src.export_model import register_best_model
 from src.threshold_optimizer import (
-    evaluate_clinical_score,
     optimize_thresholds,
-    predict_with_thresholds,
     save_thresholds,
 )
 
@@ -97,14 +95,8 @@ def main() -> None:
 
         metrics = evaluate_and_log(model, X_test, y_test, "best_overall", best_params, output_dir=MODELS_DIR)
 
-        composite = 0.4 * metrics["Minor_precision"] + 0.4 * metrics["Major_recall"] + 0.2 * metrics["Moderate_recall"]
+        composite = 0.4 * metrics["Minor_precision"] + 0.4 * metrics["Major_recall"] + 0.2 * metrics["Moderate_f1"]
         mlflow.log_metric("composite", composite)
-
-        test_probs = model.predict_proba(X_test)
-        test_preds_thresholded = predict_with_thresholds(test_probs, thresholds["t_major"], thresholds["t_minor"])
-        clinical_score = evaluate_clinical_score(y_test, test_preds_thresholded)
-        mlflow.log_metric("clinical_score", clinical_score)
-        logger.info("Clinical score (thresholded test): %.4f", clinical_score)
 
         signature = mlflow.models.infer_signature(X_test[:5], model.predict(X_test[:5]))
         mlflow.sklearn.log_model(model, name="model", signature=signature)

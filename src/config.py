@@ -33,11 +33,11 @@ LOG_PATH = f"{LOGS_DIR}/pipeline.log"
 TRIALS_LEADERBOARD_PATH = "trials_leaderboard.json"
 
 # --- Training metadata ---
-EXPERIMENT_NAME = "Composite-DDI-Severity"
+EXPERIMENT_NAME = "Claude-DDI-Severity"
 TEST_SIZE = 0.2
 CLASS_NAMES = ["Minor", "Moderate", "Major"]
 REGISTRY_NAME = "DDI-Severity"
-STUDY_NAME = "Composite-DDI-Severity-TPE"
+STUDY_NAME = "Claude-DDI-Severity-TPE"
 
 # --- Logger singleton ---
 Path(LOGS_DIR).mkdir(exist_ok=True)

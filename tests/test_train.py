@@ -211,6 +211,7 @@ class TestObjective:
         with (
             patch("src.search_hyperparams.RandomForestClassifier", return_value=mock_model),
             patch("src.search_hyperparams.evaluate_and_log") as mock_eval,
+            patch("src.search_hyperparams.expected_cost", return_value=0.35),
             patch("src.search_hyperparams.mlflow"),
         ):
             mock_eval.return_value = {
@@ -231,8 +232,7 @@ class TestObjective:
             }
             result = _objective_with_family(trial, X_train, y_train, X_test, y_test, 10, "RandomForest")
 
-        expected = 0.4 * 0.8 + 0.4 * 0.75 + 0.2 * 0.85  # 0.79
-        assert result == expected
+        assert result == 0.35
         assert mock_model.fit.call_count == 4  # 3 folds + 1 full train
 
     def test_objective_xgboost(self, trial_and_data):
@@ -244,6 +244,7 @@ class TestObjective:
             patch("src.search_hyperparams.XGBClassifier", return_value=mock_model),
             patch("src.search_hyperparams.cross_val_score", return_value=np.array([0.8, 0.82, 0.81])),
             patch("src.search_hyperparams.evaluate_and_log") as mock_eval,
+            patch("src.search_hyperparams.expected_cost", return_value=0.35),
             patch("src.search_hyperparams.mlflow"),
         ):
             mock_eval.return_value = {
@@ -264,8 +265,7 @@ class TestObjective:
             }
             result = _objective_with_family(trial, X_train, y_train, X_test, y_test, 10, "XGBoost")
 
-        expected = 0.4 * 0.75 + 0.4 * 0.72 + 0.2 * 0.82  # 0.752
-        assert result == expected
+        assert result == 0.35
         mock_model.fit.assert_called_once()
 
 
@@ -383,8 +383,6 @@ class TestTrainMain:
             ),
             patch("src.train.optimize_thresholds", return_value={"t_major": 0.25, "t_minor": 0.80}),
             patch("src.train.save_thresholds"),
-            patch("src.train.evaluate_clinical_score", return_value=0.85),
-            patch("src.train.predict_with_thresholds", return_value=np.zeros(20, dtype=int)),
             patch("src.train.joblib.dump"),
             patch("src.train.mlflow") as mock_mlflow,
             patch("src.train.mlflow.models.infer_signature", return_value=mock_sig),

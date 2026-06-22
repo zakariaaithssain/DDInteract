@@ -2,16 +2,9 @@ import json
 
 import numpy as np
 import optuna
-from sklearn.metrics import precision_score, recall_score
 
+from src.clinical_metrics import cost_breakdown, expected_cost
 from src.config import CLASS_NAMES, THRESHOLDS_PATH, logger
-
-
-def evaluate_clinical_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    prec_minor = precision_score(y_true, y_pred, labels=[0], average="macro", zero_division=0)
-    rec_major = recall_score(y_true, y_pred, labels=[2], average="macro", zero_division=0)
-    rec_mod = recall_score(y_true, y_pred, labels=[1], average="macro", zero_division=0)
-    return 0.40 * prec_minor + 0.40 * rec_major + 0.20 * rec_mod
 
 
 def predict_with_thresholds(y_probs: np.ndarray, t_major: float, t_minor: float) -> np.ndarray:
@@ -30,17 +23,19 @@ def optimize_thresholds(y_true: np.ndarray, y_probs: np.ndarray, n_trials: int =
         t_major = trial.suggest_float("t_major", 0.15, 0.60)
         t_minor = trial.suggest_float("t_minor", 0.40, 0.90)
         y_pred = predict_with_thresholds(y_probs, t_major, t_minor)
-        return evaluate_clinical_score(y_true, y_pred)
+        return expected_cost(y_true, y_pred)
 
-    study = optuna.create_study(direction="maximize")
+    study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=n_trials, n_jobs=-1)
 
+    best_pred = predict_with_thresholds(y_probs, study.best_params["t_major"], study.best_params["t_minor"])
     logger.info(
-        "Best clinical score=%.4f at thresholds: t_major=%.3f, t_minor=%.3f",
+        "Best expected_cost=%.4f at thresholds: t_major=%.3f, t_minor=%.3f",
         study.best_value,
         study.best_params["t_major"],
         study.best_params["t_minor"],
     )
+    logger.info("Cost breakdown at best thresholds: %s", cost_breakdown(y_true, best_pred))
     return study.best_params
 
 
